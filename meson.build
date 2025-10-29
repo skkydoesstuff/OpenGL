@@ -19,11 +19,13 @@ glad_lib = static_library('glad',
 
 inc_dirs = include_directories([
   'include',
-  'external'
+  'external/glad/include',
+  'external/stb_image',
 ])
 
 # Find cpp files
 sources = []
+sources += files('external/stb_image/stb_image_impl.c')
 cpp_files_output = run_command('sh', '-c', 'find src -name "*.cpp" -type f 2>/dev/null || true', check: true).stdout().strip()
 if cpp_files_output != ''
   foreach file : cpp_files_output.split('\n')
@@ -36,7 +38,9 @@ endif
 # Executable
 executable('app',
   sources,
-  include_directories: ['include', 'external/glad/include'],
+  include_directories: inc_dirs,
   link_with: glad_lib,
   dependencies: [glfw_dep, gl_dep, dl_dep, x11_dep, thread_dep]
 )
+
+run_command('sh', '-c', 'cp build/compile_commands.json compile_commands.json', check: false)
