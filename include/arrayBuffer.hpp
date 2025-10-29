@@ -13,4 +13,5 @@ public:
 
 	void Bind();
 	void Unbind();
+  void Draw(unsigned int mode, unsigned int count, unsigned int data_type);
 };

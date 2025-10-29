@@ -24,3 +24,11 @@ void ArrayBuffer::Bind() {
 void ArrayBuffer::Unbind() {
 	glBindBuffer(m_Type, 0);
 }
+
+void ArrayBuffer::Draw(unsigned int mode, unsigned int count, unsigned int data_type) {
+  if (m_Type == GL_ARRAY_BUFFER) {
+    glDrawArrays(mode, 1, count);
+  } else if (m_Type == GL_ELEMENT_ARRAY_BUFFER) {
+    glDrawElements(mode, count, data_type, nullptr);
+  }
+}
