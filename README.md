@@ -1,1 +1,1 @@
-Test readme
+Prebuilt in build directory, adding windows support soon!
