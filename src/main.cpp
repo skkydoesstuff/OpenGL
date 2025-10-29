@@ -7,6 +7,7 @@
 #include "shader.hpp"
 #include "arrayBuffer.hpp"
 #include "vertexArray.hpp"
+#include "texture.hpp"
 
 #include "defines.hpp"
 #include "utils.hpp"
@@ -54,34 +55,16 @@ int main() {
 		Shader shaderObj(vertexShaderSource, fragmentShaderSource);
 		shaderObj.Bind();
 
-    unsigned int texture;
-    glGenTextures(1, &texture);
-    glBindTexture(GL_TEXTURE_2D, texture);
-
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-
-    int width, height, nrChannels;
-
-    std::string container_path = exeDir + "/assets/textures/container.jpg";
-    unsigned char *data = stbi_load(container_path.c_str(), &width, &height, &nrChannels, 0);
-    if (data) {
-      glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
-      glGenerateMipmap(GL_TEXTURE_2D);
-    } else {
-      std::cout << "Failed to load texture!" << std::endl;
-    }
-    stbi_image_free(data);
+    Texture containerTexture(exeDir + "/assets/textures/container.jpg");
 
 		while (!windowObj.GetWindowShouldClose()) {
 			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 			glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
 
-      glBindTexture(GL_TEXTURE_2D, texture);
+      containerTexture.bind(0);
 			EBO.Draw(GL_TRIANGLES, 6, GL_UNSIGNED_INT);
-		
+      containerTexture.unbind();
+
 			windowObj.SwapBuffers();
 			glfwPollEvents();
 		}

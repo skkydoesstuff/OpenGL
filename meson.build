@@ -72,12 +72,13 @@ if host_system == 'windows'
           file = file.split('src/')[1]
           sources += files('src/' + file.strip())
         endif
-      endforeach
-    endif
+      endif
+    endforeach
   endif
 else
   # Unix-like systems (Linux, macOS)
   cpp_files_output = run_command('sh', '-c', 'find src -name "*.cpp" -type f 2>/dev/null || true', check: true).stdout().strip()
+  
   if cpp_files_output != ''
     foreach file : cpp_files_output.split('\n')
       if file != ''
