@@ -7,7 +7,7 @@ project('opengl-app', 'c', 'cpp',
 host_system = host_machine.system()
 
 # Dependencies
-glfw_dep = dependency('glfw3')
+glfw_dep = dependency('glfw3', static: true)
 thread_dep = dependency('threads')
 
 # Platform-specific dependencies
