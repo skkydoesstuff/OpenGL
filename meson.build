@@ -105,3 +105,29 @@ if host_system == 'windows'
 else
   run_command('sh', '-c', 'cp build/compile_commands.json compile_commands.json 2>/dev/null || true', check: false)
 endif
+
+# Copy assets folder to build directory
+assets_src = meson.project_source_root() / 'assets'
+assets_dst = meson.project_build_root() / 'assets'
+
+if host_system == 'windows'
+  copy_assets = custom_target('copy_assets',
+    output: 'assets_copy_stamp',
+    command: [
+      'powershell', '-NoProfile', '-Command',
+      'if (Test-Path', assets_dst, ') { Remove-Item', assets_dst, '-Recurse -Force }; Copy-Item', assets_src, assets_dst, '-Recurse; New-Item -ItemType File -Path assets_copy_stamp -Force | Out-Null'
+    ],
+    build_by_default: true
+  )
+else
+  copy_assets = custom_target('copy_assets',
+    output: 'assets_copy_stamp',
+    command: [
+      'sh', '-c',
+      'rm -rf @1@ && cp -r @0@ @1@ && touch @2@',
+      assets_src, assets_dst, '@OUTPUT@'
+    ],
+    build_by_default: true
+  )
+endif
+
