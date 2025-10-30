@@ -21,6 +21,11 @@ void Shader::Unbind() {
 	glUseProgram(0);
 }
 
+void Shader::SetInt(const std::string& name, int value) {
+  unsigned int loc = getUniformLocation(program, name);
+  glUniform1i(loc, value);
+}
+
 unsigned int Shader::createShader(const std::string& shaderSource, unsigned int type) {
 	unsigned int shader = glCreateShader(type);
 	const char* shaderSrc = shaderSource.c_str();
@@ -51,4 +56,8 @@ unsigned int Shader::createProgram(const std::string& vertexShaderSource, const 
 	glDeleteShader(fragmentShader);
 
 	return program;
+}
+
+unsigned int Shader::getUniformLocation(unsigned int programID, const std::string& name) {
+  return glGetUniformLocation(programID, name.c_str()); 
 }

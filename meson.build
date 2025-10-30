@@ -115,7 +115,7 @@ if host_system == 'windows'
     output: 'assets_copy_stamp',
     command: [
       'powershell', '-NoProfile', '-Command',
-      'if (Test-Path', assets_dst, ') { Remove-Item', assets_dst, '-Recurse -Force }; Copy-Item', assets_src, assets_dst, '-Recurse; New-Item -ItemType File -Path assets_copy_stamp -Force | Out-Null'
+      'if (Test-Path "' + assets_dst + '") { Remove-Item "' + assets_dst + '" -Recurse -Force }; Copy-Item "' + assets_src + '" "' + assets_dst + '" -Recurse; New-Item -ItemType File -Path "@OUTPUT@" -Force | Out-Null'
     ],
     build_by_default: true
   )
@@ -124,10 +124,8 @@ else
     output: 'assets_copy_stamp',
     command: [
       'sh', '-c',
-      'rm -rf @1@ && cp -r @0@ @1@ && touch @2@',
-      assets_src, assets_dst, '@OUTPUT@'
+      'rm -rf "' + assets_dst + '" && cp -r "' + assets_src + '" "' + assets_dst + '" && touch "@OUTPUT@"'
     ],
     build_by_default: true
   )
 endif
-

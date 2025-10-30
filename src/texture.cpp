@@ -2,11 +2,17 @@
 #include <stb_image.h>
 
 #include "texture.hpp"
+#include "shader.hpp"
 
 #include <string>
 #include <iostream>
 
-Texture::Texture(const std::string &path, bool generateMipmaps) {
+Texture::Texture(const std::string &path, Shader &shader, unsigned int unit, bool generateMipmaps) {
+  m_Unit = unit;
+  
+  shader.Bind();
+  shader.SetInt("texture" + std::to_string(unit), unit);
+  
   glGenTextures(1, &id);
   glBindTexture(GL_TEXTURE_2D, id);
 
@@ -36,8 +42,8 @@ Texture::Texture(const std::string &path, bool generateMipmaps) {
 
 Texture::~Texture() { glDeleteTextures(1, &id); }
 
-void Texture::bind(unsigned int unit) const {
-  glActiveTexture(GL_TEXTURE0 + unit);
+void Texture::bind() const {
+  glActiveTexture(GL_TEXTURE0 + m_Unit);
   glBindTexture(GL_TEXTURE_2D, id);
 }
 

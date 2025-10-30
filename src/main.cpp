@@ -12,8 +12,6 @@
 #include "defines.hpp"
 #include "utils.hpp"
 
-#include <iostream>
-
 int main() {
 	Window windowObj(WIDTH, HEIGHT, TITLE);
 
@@ -42,28 +40,31 @@ int main() {
 
 		VAO.setVertexAttrib(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), static_cast<void*>(0));
 		VAO.setVertexAttrib(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), reinterpret_cast<void*>(3*sizeof(float)));
-		VAO.setVertexAttrib(2, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), reinterpret_cast<void*>(6*sizeof(float)));
+		VAO.setVertexAttrib(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), reinterpret_cast<void*>(6*sizeof(float)));
     
     std::string exeDir = getExecutableDir();
 
-    std::string vertFilePath = exeDir + "/assets/shaders/shader.vert";
-    std::string fragFilePath = exeDir + "/assets/shaders/shader.frag";
-
-		std::string vertexShaderSource = readFileIntoString(vertFilePath);
-		std::string fragmentShaderSource = readFileIntoString(fragFilePath); 
+		std::string vertexShaderSource = readFileIntoString(exeDir + "/assets/shaders/shader.vert");
+		std::string fragmentShaderSource = readFileIntoString(exeDir + "/assets/shaders/shader.frag"); 
 
 		Shader shaderObj(vertexShaderSource, fragmentShaderSource);
 		shaderObj.Bind();
 
-    Texture containerTexture(exeDir + "/assets/textures/container.jpg");
+    shaderObj.SetInt("texture1", 0);
+    shaderObj.SetInt("texture2", 1);
+
+    Texture texture1(exeDir + "/assets/textures/container.jpg", shaderObj, 0);
+    Texture texture2(exeDir + "/assets/textures/awesome.png", shaderObj, 1);
 
 		while (!windowObj.GetWindowShouldClose()) {
 			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 			glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
 
-      containerTexture.bind(0);
+      texture1.bind();
+      texture2.bind();
 			EBO.Draw(GL_TRIANGLES, 6, GL_UNSIGNED_INT);
-      containerTexture.unbind();
+      texture1.unbind();
+      texture2.unbind();
 
 			windowObj.SwapBuffers();
 			glfwPollEvents();
