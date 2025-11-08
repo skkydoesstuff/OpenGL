@@ -4,7 +4,8 @@
 #include <memory>
 #include <string>
 
-class Drawable;
+#include "engine/drawable.hpp"
+
 class Camera;
 class Shader;
 
