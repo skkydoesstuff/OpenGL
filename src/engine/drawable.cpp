@@ -1,9 +1,13 @@
+#include <glad/glad.h>
+#include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+
 #include "engine/drawable.hpp"
 #include "engine/shader.hpp"
 #include "engine/vertexArrayBuffer.hpp"
 #include "engine/arrayBuffer.hpp"
 
-#include <glad/glad.h>
+#include "application/constants.hpp"
 
 Drawable::Drawable(
   Shader& shader,
@@ -15,7 +19,8 @@ Drawable::Drawable(
   : shader(shader),
     VAO(*(new VertexArrayBuffer(shader))),
     VBO(*(new ArrayBuffer(GL_ARRAY_BUFFER, vertexCount * sizeof(float), vertices))),
-    EBO(*(new ArrayBuffer(GL_ELEMENT_ARRAY_BUFFER, indexCount * sizeof(unsigned int), indices)))
+    EBO(*(new ArrayBuffer(GL_ELEMENT_ARRAY_BUFFER, indexCount * sizeof(unsigned int), indices))),
+    vertexCount(vertexCount)
 {
   VAO.bind();
   VBO.bind();
@@ -25,9 +30,33 @@ Drawable::Drawable(
   VAO.unbind();
 }
 
-void Drawable::draw() const {
+void Drawable::setScale(glm::vec3 s) {
+  scale = s;
+}
+
+void Drawable::setRotation(const float angleDeg, glm::vec3 axis) {
+  rotationAngle = angleDeg;
+  rotationAxis = axis;
+} 
+
+void Drawable::setPosition(glm::vec3 pos) {
+  position = pos;
+}
+
+void Drawable::updateModelMatrix() {
+  model = glm::mat4(1.0f);
+  model = glm::translate(model, position);
+  model = glm::rotate(model, glm::radians(rotationAngle), rotationAxis);
+  model = glm::scale(model, scale);
+}
+
+void Drawable::draw(const Camera& camera, Shader& shader) const {
   shader.bind();
+  shader.setMat4("model", model);
+  shader.setMat4("view", camera.getViewMatrix());
+  shader.setMat4("projection", camera.getProjection((float) WIDTH/HEIGHT));
   VAO.bind();
-  glDrawElements(GL_TRIANGLES, 3, GL_UNSIGNED_INT, nullptr);
+  glDrawElements(GL_TRIANGLES, vertexCount, GL_UNSIGNED_INT, nullptr);
   VAO.unbind();
+  shader.unbind();
 }
