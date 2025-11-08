@@ -8,7 +8,7 @@
 
 Application::Application():
 window(WIDTH, HEIGHT, TITLE),
-shader(getExecutableDir() + "/assets/shaders/shader.vs", getExecutableDir() + "/assets/shaders/shader.vs")  {
+shader(getExecutableDir() + "/assets/shaders/shader.vs", getExecutableDir() + "/assets/shaders/shader.fs")  {
   glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
 }
 
