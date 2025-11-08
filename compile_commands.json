@@ -1,0 +1,19 @@
+[
+  {
+    "arguments": [
+      "/usr/bin/g++",
+      "-c",
+      "-g",
+      "-Wall",
+      "-std=c++17",
+      "-Iinclude",
+      "-Ithird_party/glad/include",
+      "-o",
+      "build/main.o",
+      "src/main.cpp"
+    ],
+    "directory": "/home/skky/projects/c/OpenGL",
+    "file": "/home/skky/projects/c/OpenGL/src/main.cpp",
+    "output": "/home/skky/projects/c/OpenGL/build/main.o"
+  }
+]
