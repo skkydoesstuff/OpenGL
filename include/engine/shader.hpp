@@ -1,5 +1,7 @@
 #pragma once
 
+#include <glm/glm.hpp>
+
 #include <unordered_map>
 #include <string>
 
@@ -16,6 +18,8 @@ public:
   ~Shader();
   void bind();
   void unbind();
+
+  void setMat4(std::string name, glm::mat4 mat);
 
 private:
   unsigned int getUniformLocation(const std::string& name);

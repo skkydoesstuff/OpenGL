@@ -3,66 +3,57 @@ build_dir := "build"
 output := build_dir / "app"
 cc := "g++"
 cflags := "-g -Wall -std=c++17"
-includes := "-Iinclude -Ithird_party/glad/include"
+includes := "-Iinclude -Ithird_party/glad/include -Ithird_party/glm"
 libs := "-lglfw -ldl -lm -lGL"
 
-# Default recipe
+# Default target
 default: build
 
 # Build everything
 build: setup compile link copy_assets
-    @echo "✓ Build complete: {{output}}"
+    echo "✓ Build complete: {{output}}"
 
-# Create build directory
+# Create build dir
 setup:
-    @mkdir -p {{build_dir}}
+    mkdir -p {{build_dir}}
 
-# Find and compile all .cpp and .c files
-compile: setup
+# Compile sources incrementally
+compile:
     #!/usr/bin/env bash
     set -euo pipefail
-    # Compile C++ files
-    for src in $(find src third_party -name "*.cpp" 2>/dev/null); do
-        obj="{{build_dir}}/$(basename "$src" .cpp).o"
-        echo "Compiling: $src"
-        {{cc}} -c "$src" {{cflags}} {{includes}} -o "$obj"
-    done
-    # Compile C files
-    for src in $(find src third_party -name "*.c" 2>/dev/null); do
-        obj="{{build_dir}}/$(basename "$src" .c).o"
-        echo "Compiling: $src"
-        {{cc}} -c "$src" {{cflags}} {{includes}} -o "$obj"
+    sources=$(find src third_party -name "*.cpp" -o -name "*.c")
+    for src in $sources; do
+        obj="{{build_dir}}/$(basename $src).o"
+        if [ ! -f $obj ] || [ $src -nt $obj ]; then
+            echo "Compiling $src"
+            {{cc}} -c "$src" {{cflags}} {{includes}} -o "$obj"
+        fi
     done
 
-# Link all object files
-link: compile
-    @echo "Linking..."
-    @{{cc}} {{build_dir}}/*.o -o {{output}} {{libs}}
+# Link objects
+link:
+    #!/usr/bin/env bash
+    set -euo pipefail
+    objs=""
+    sources=$(find src third_party -name "*.cpp" -o -name "*.c")
+    for src in $sources; do
+        objs="$objs {{build_dir}}/$(basename $src).o"
+    done
+    echo "Linking..."
+    {{cc}} $objs -o {{output}} {{libs}}
 
+# Copy assets
 copy_assets:
-  @echo "Copying assets..."
-  rm -rf build/assets
-  cp -r assets build/assets
+    rm -rf {{build_dir}}/assets
+    cp -r assets {{build_dir}}/assets
 
-# Clean build artifacts
+# Clean
 clean:
     rm -rf {{build_dir}}
 
-# Rebuild from scratch
+# Rebuild
 rebuild: clean build
 
-# Run the executable
+# Run
 run: build
     ./{{output}}
-
-# List all source files
-list-sources:
-    @find src third_party -name "*.cpp" 2>/dev/null || echo "No source files found"
-
-# Show build configuration
-show-config:
-    @echo "Build Directory: {{build_dir}}"
-    @echo "Output: {{output}}"
-    @echo "Compiler: {{cc}}"
-    @echo "Includes: {{includes}}"
-    @echo "Libraries: {{libs}}"

@@ -1,4 +1,6 @@
 #include <glad/glad.h>
+#include <glm/glm.hpp>
+#include <glm/gtc/type_ptr.hpp>
 
 #include <engine/shader.hpp>
 
@@ -100,6 +102,11 @@ void Shader::bind() {
 
 void Shader::unbind() {
   glUseProgram(0);
+}
+
+void Shader::setMat4(std::string name, glm::mat4 mat) {
+  unsigned int loc = getUniformLocation(name);
+  glUniformMatrix4fv(loc, 1, GL_FALSE, glm::value_ptr(mat));
 }
 
 unsigned int Shader::getUniformLocation(const std::string& name) {

@@ -30,6 +30,8 @@ Window::Window(unsigned int WIDTH, unsigned int HEIGHT, const char* TITLE) {
       glfwTerminate();
       exit(-1);
   }
+
+  glEnable(GL_DEPTH_TEST);
 }
 
 Window::~Window() {
