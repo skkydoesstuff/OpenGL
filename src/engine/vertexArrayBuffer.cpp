@@ -32,7 +32,11 @@ void VertexArrayBuffer::draw(unsigned int bufferType, unsigned int vertexCount, 
   m_Shader.bind();
 }
 
-void VertexArrayBuffer::setupVertexAttribute(unsigned int index, int size, int stride, int offset) {
-  glVertexAttribPointer(index, size, GL_FLOAT, GL_FALSE, stride, (void*)(offset * sizeof(float)));
-  glEnableVertexAttribArray(index);
+void VertexArrayBuffer::setupVertexAttribute(unsigned int index,
+                                             int size,
+                                             int stride,
+                                             int offset) {
+    glVertexAttribPointer(index, size, GL_FLOAT, GL_FALSE,
+                          stride, (void*)(offset * sizeof(float)));
+    glEnableVertexAttribArray(index);
 }

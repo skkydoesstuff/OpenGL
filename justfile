@@ -3,7 +3,7 @@ build_dir := "build"
 output := build_dir / "app"
 cc := "g++"
 cflags := "-g -Wall -std=c++17"
-includes := "-Iinclude -Ithird_party/glad/include -Ithird_party/glm"
+includes := "-Iinclude -Ithird_party/glad/include -Ithird_party/glm -Ithird_party/stb_image"
 libs := "-lglfw -ldl -lm -lGL"
 
 # Default target
@@ -21,12 +21,25 @@ setup:
 compile:
     #!/usr/bin/env bash
     set -euo pipefail
-    sources=$(find src third_party -name "*.cpp" -o -name "*.c")
-    for src in $sources; do
+    mkdir -p {{build_dir}}
+    
+    # Compile C++ files
+    sources_cpp=$(find src third_party -name "*.cpp")
+    for src in $sources_cpp; do
         obj="{{build_dir}}/$(basename $src).o"
         if [ ! -f $obj ] || [ $src -nt $obj ]; then
             echo "Compiling $src"
             {{cc}} -c "$src" {{cflags}} {{includes}} -o "$obj"
+        fi
+    done
+
+    # Compile C files
+    sources_c=$(find src third_party -name "*.c")
+    for src in $sources_c; do
+        obj="{{build_dir}}/$(basename $src).o"
+        if [ ! -f $obj ] || [ $src -nt $obj ]; then
+            echo "Compiling $src"
+            gcc -c "$src" -g -Wall {{includes}} -o "$obj"
         fi
     done
 

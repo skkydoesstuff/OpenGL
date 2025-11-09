@@ -19,6 +19,7 @@ public:
   void bind();
   void unbind();
 
+  void setInt(std::string name, int value);
   void setMat4(std::string name, glm::mat4 mat);
 
 private:

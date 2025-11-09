@@ -4,6 +4,7 @@
 #include "engine/shader.hpp"
 #include "engine/renderer.hpp"
 #include "engine/camera.hpp"
+#include "engine/texture.hpp"
 
 class Application {
 private:
@@ -11,6 +12,8 @@ private:
   Shader shader;
   Renderer renderer;
   Camera camera;
+
+  Texture tex;
 public:
   Application();
 

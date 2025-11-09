@@ -25,7 +25,8 @@ Drawable::Drawable(
   VAO.bind();
   VBO.bind();
   EBO.bind();
-  VAO.setupVertexAttribute(0, 3, 3 * sizeof(float), 0);
+  VAO.setupVertexAttribute(0, 3, 5 * sizeof(float), 0);
+  VAO.setupVertexAttribute(1, 2, 5 * sizeof(float), 3);
   VBO.unbind();
   VAO.unbind();
 }
