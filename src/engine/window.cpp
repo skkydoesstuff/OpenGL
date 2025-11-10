@@ -32,6 +32,9 @@ Window::Window(unsigned int WIDTH, unsigned int HEIGHT, const char* TITLE) {
   }
 
   glEnable(GL_DEPTH_TEST);
+  glfwSwapInterval(1);
+
+  lastTime = glfwGetTime();
 }
 
 Window::~Window() {
@@ -46,6 +49,14 @@ bool Window::shouldClose() {
 }
 
 void Window::update() {
+  double currentTime = glfwGetTime();
+  deltaTime = currentTime - lastTime;
+  lastTime = currentTime;
+
   glfwPollEvents();
   glfwSwapBuffers(window);
+}
+
+double Window::getDeltaTime() {
+  return deltaTime;
 }

@@ -29,7 +29,13 @@ void Application::start() {
 
 // gets called every frame
 void Application::update() {
+  Drawable* t = renderer.getDrawable("triangle");
+  if (!t) return;
+  
+  glm::vec3 oldPos = t->position;
+  glm::vec3 newPos = glm::vec3(0.0f, 0.0f, 1.0f * window.getDeltaTime()) + oldPos;
 
+  t->setPosition(newPos);
 }
 
 // gets called once to setup geometry

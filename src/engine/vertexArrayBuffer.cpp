@@ -11,11 +11,11 @@ VertexArrayBuffer::~VertexArrayBuffer() {
   glDeleteVertexArrays(1, &ID);
 }
 
-void VertexArrayBuffer::bind() {
+void VertexArrayBuffer::bind() const {
   glBindVertexArray(ID);
 }
 
-void VertexArrayBuffer::unbind() {
+void VertexArrayBuffer::unbind() const {
   glBindVertexArray(0);
 }
 

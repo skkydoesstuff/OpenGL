@@ -12,7 +12,7 @@ public:
   ~VertexArrayBuffer();
   void setupVertexAttribute(unsigned int index, int size, int stride, int offset);
 
-  void bind();
-  void unbind();
+  void bind() const;
+  void unbind() const;
   void draw(unsigned int bufferType, unsigned int vertexCount, unsigned int dataType);
 };

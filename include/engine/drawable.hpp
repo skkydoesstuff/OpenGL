@@ -12,9 +12,9 @@
 class Drawable {
 private:
   Shader& shader;
-  VertexArrayBuffer& VAO;
-  ArrayBuffer& VBO;
-  ArrayBuffer& EBO;
+  VertexArrayBuffer VAO;
+  ArrayBuffer VBO;
+  ArrayBuffer EBO;
   unsigned int vertexCount;
 
 public:

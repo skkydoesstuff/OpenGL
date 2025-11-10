@@ -17,9 +17,9 @@ Drawable::Drawable(
   const size_t indexCount
 )
   : shader(shader),
-    VAO(*(new VertexArrayBuffer(shader))),
-    VBO(*(new ArrayBuffer(GL_ARRAY_BUFFER, vertexCount * sizeof(float), vertices))),
-    EBO(*(new ArrayBuffer(GL_ELEMENT_ARRAY_BUFFER, indexCount * sizeof(unsigned int), indices))),
+    VAO(shader),
+    VBO(GL_ARRAY_BUFFER, vertexCount * sizeof(float), vertices),
+    EBO(GL_ELEMENT_ARRAY_BUFFER, indexCount * sizeof(unsigned int), indices),
     vertexCount(vertexCount)
 {
   VAO.bind();
