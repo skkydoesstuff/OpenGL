@@ -1,8 +1,6 @@
 #include <glm/glm.hpp>
-#include <glm/gtc/matrix_transform.hpp>
 #include <stb_image.h>
 
-#include "application/constants.hpp"
 #include "application/application.hpp"
 
 #include "engine/utils.hpp"
@@ -10,13 +8,12 @@
 #include "engine/renderer.hpp"
 #include "engine/camera.hpp"
 
-#include "engine/primative.hpp"
 
 Application::Application():
 window(WIDTH, HEIGHT, TITLE),
 shader(getExecutableDir() + "/assets/shaders/shader.vs", getExecutableDir() + "/assets/shaders/shader.fs"),
 camera(glm::vec3(0.0f, 0.0f, 0.0f)),
-tex(getExecutableDir() + "/assets/textures/pubert.png", true) 
+scene(renderer, shader)
 {
   glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
 }
@@ -28,20 +25,20 @@ void Application::start() {
 
 // gets called every frame
 void Application::update() {
-  Drawable* t = renderer.getDrawable("triangle");
-  if (!t) return;
+  Drawable* q = renderer.getDrawable("quad");
+  if (!q) return;
 
-  glm::vec3 oldPos = t->position;
+  glm::vec3 oldPos = q->position;
   glm::vec3 newPos = glm::vec3(0.0f, 0.0f, 1.0f * window.getDeltaTime()) + oldPos;
 
-  t->setPosition(newPos);
-  t->updateModelMatrix();
+  q->setPosition(newPos);
+  q->updateModelMatrix();
 }
 
 // gets called once to setup geometry
 void Application::setupGeometry() {
-  Primative triangle(renderer, shader);
-  triangle.createTriangle();
+  Drawable* a = scene.addQuad("quad", getExecutableDir() + "/assets/textures/pubert.png");
+  a->setPosition(glm::vec3(0.0f, 0.0f, 0.0f));
 
   camera.moveForward(-1.0f);
 }
@@ -49,11 +46,6 @@ void Application::setupGeometry() {
 // gets called every frame with priority
 void Application::render() {
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-  shader.bind();
-  tex.bind();
-  shader.setInt("texture0", 0);
-  shader.unbind();
 
   renderer.drawAll(camera, shader);
   window.update();

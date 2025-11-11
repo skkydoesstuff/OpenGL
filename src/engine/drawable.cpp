@@ -31,6 +31,10 @@ Drawable::Drawable(
   VAO.unbind();
 }
 
+void Drawable::addTexture(const std::string& path) {
+  textures.emplace_back(path, true);
+}
+
 void Drawable::setScale(glm::vec3 s) {
   scale = s;
 }
@@ -56,6 +60,13 @@ void Drawable::draw(const Camera& camera, Shader& shader) const {
   shader.setMat4("model", model);
   shader.setMat4("view", camera.getViewMatrix());
   shader.setMat4("projection", camera.getProjection((float) WIDTH/HEIGHT));
+
+  for (size_t i = 0; i < textures.size(); i++) {
+    textures[i].bind(i);
+    std::string name = "texture" + std::to_string(i);
+    shader.setInt(name, i);
+  }
+
   VAO.bind();
   glDrawElements(GL_TRIANGLES, vertexCount, GL_UNSIGNED_INT, nullptr);
   VAO.unbind();

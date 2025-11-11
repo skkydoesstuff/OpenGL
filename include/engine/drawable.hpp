@@ -6,8 +6,11 @@
 #include "engine/vertexArrayBuffer.hpp"
 #include "engine/arrayBuffer.hpp"
 #include "engine/camera.hpp"
+#include "engine/texture.hpp"
 
 #include <stddef.h>
+#include <string>
+#include <vector>
 
 class Drawable {
 private:
@@ -17,8 +20,12 @@ private:
   ArrayBuffer EBO;
   unsigned int vertexCount;
 
+  std::vector<Texture> textures;
+
 public:
   Drawable(Shader& shader, const float* vertices, const size_t vertexCount, const unsigned int* indices, size_t indexCount);
+
+  void addTexture(const std::string& path);
 
   void setScale(glm::vec3 s);
   void setRotation(const float angleDeg, glm::vec3 axis);

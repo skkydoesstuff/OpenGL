@@ -13,6 +13,43 @@ default: build
 build: setup compile link copy_assets
     echo "✓ Build complete: {{output}}"
 
+# Build for Windows (cross-compile with MinGW from Linux)
+windows_build:
+    #!/usr/bin/env bash
+    set -euo pipefail
+    build_dir="build/windows"
+    mkdir -p "$build_dir"
+
+    # Compile C++ sources
+    sources_cpp=$(find src third_party -name "*.cpp")
+    for src in $sources_cpp; do
+        obj="$build_dir/$(basename $src).o"
+        x86_64-w64-mingw32-g++ -c "$src" -g -Wall -std=c++17 \
+            -Iinclude -Ithird_party/glad/include -Ithird_party/glm -Ithird_party/stb_image \
+            -o "$obj"
+    done
+
+    # Compile C sources
+    sources_c=$(find src third_party -name "*.c")
+    for src in $sources_c; do
+        obj="$build_dir/$(basename $src).o"
+        x86_64-w64-mingw32-gcc -c "$src" -g -Wall \
+            -Iinclude -Ithird_party/glad/include -Ithird_party/glm -Ithird_party/stb_image \
+            -o "$obj"
+    done
+
+    # Link with static GCC runtime
+    objs=$(find $build_dir -name "*.o")
+    x86_64-w64-mingw32-g++ $objs -o "$build_dir/app.exe" \
+        -lglfw3 -lopengl32 -lgdi32 -limm32 -lole32 -luuid -lsetupapi \
+        -static -static-libgcc -static-libstdc++
+
+    # Copy assets
+    rm -rf "$build_dir/assets"
+    cp -r assets "$build_dir/assets"
+
+    echo "✓ Windows static build complete: $build_dir/app.exe"
+
 # Create build dir
 setup:
     mkdir -p {{build_dir}}
