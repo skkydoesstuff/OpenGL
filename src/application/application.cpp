@@ -8,10 +8,9 @@
 #include "engine/utils.hpp"
 #include "engine/window.hpp"
 #include "engine/renderer.hpp"
-#include "engine/drawable.hpp"
 #include "engine/camera.hpp"
 
-#include <memory>
+#include "engine/primative.hpp"
 
 Application::Application():
 window(WIDTH, HEIGHT, TITLE),
@@ -31,33 +30,20 @@ void Application::start() {
 void Application::update() {
   Drawable* t = renderer.getDrawable("triangle");
   if (!t) return;
-  
+
   glm::vec3 oldPos = t->position;
   glm::vec3 newPos = glm::vec3(0.0f, 0.0f, 1.0f * window.getDeltaTime()) + oldPos;
 
   t->setPosition(newPos);
+  t->updateModelMatrix();
 }
 
 // gets called once to setup geometry
 void Application::setupGeometry() {
-  const float vertices[15] = {
-    // pos.x  pos.y  pos.z   u    v
-    0.0f,  0.5f,  0.0f,   0.5f, 1.0f,
-    -0.5f, -0.5f,  0.0f,   0.0f, 0.0f,
-    0.5f, -0.5f,  0.0f,   1.0f, 0.0f
-  };
-  
-  const unsigned int indices[3] = {
-    0, 1, 2
-  };
-
-  std::unique_ptr<Drawable> triangle = std::make_unique<Drawable> (shader, vertices, 15, indices, 3);
-  triangle->setScale(glm::vec3(0.01f));
-  triangle->updateModelMatrix();
+  Primative triangle(renderer, shader);
+  triangle.createTriangle();
 
   camera.moveForward(-1.0f);
-
-  renderer.add("triangle", std::move(triangle));
 }
 
 // gets called every frame with priority
