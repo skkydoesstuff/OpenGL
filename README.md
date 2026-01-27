@@ -21,10 +21,10 @@
       ```
     - This will create a `build` directory and compile the project with CMake and MinGW64.
 
-3. **Cleaning the Build**:
-    - To remove build artifacts and start fresh:
+3. **Building after initial build**:
+    - To speed up compiliation after first build a bit:
       ```bash
-      clean_build.bat
+      build.bat
       ```
 
 4. **Running the Application**:
