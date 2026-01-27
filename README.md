@@ -9,10 +9,6 @@
     - SDL3 and GLAD libraries are included in the project.
 
 2. **Building the Project**:
-    - Open Command Prompt and navigate to the project directory:
-      ```bash
-      cd e:\c++\game_engine
-      ```
     - Run the build script:
       ```bash
       clean_build.bat
