@@ -10,14 +10,20 @@ add_library(glad STATIC external/glad/src/glad.c)
 target_include_directories(glad PUBLIC external/glad/include)
 
 # --- SDL3 ---
-add_library(SDL3 STATIC IMPORTED)  # or SHARED if you want dynamic linking
+add_library(SDL3 STATIC IMPORTED)
 set_target_properties(SDL3 PROPERTIES
     IMPORTED_LOCATION "${CMAKE_SOURCE_DIR}/external/SDL3/lib/libSDL3.dll.a"
     INTERFACE_INCLUDE_DIRECTORIES "${CMAKE_SOURCE_DIR}/external/SDL3/include"
 )
 
+# --- CGLM ---
+add_library(cglm STATIC IMPORTED)
+set_target_properties(cglm PROPERTIES
+    IMPORTED_LOCATION "${CMAKE_SOURCE_DIR}/external/cglm/build/libcglm.dll.a"
+    INTERFACE_INCLUDE_DIRECTORIES "${CMAKE_SOURCE_DIR}/external/cglm/include"
+)
+
 # --- Collect all .c source files under src ---
-# IMPORTANT: CMake won't detect new files automatically unless reconfigured
 file(GLOB_RECURSE SRC_FILES "${CMAKE_SOURCE_DIR}/src/*.c")
 
 # --- Executable ---
@@ -25,7 +31,7 @@ add_executable(app ${SRC_FILES})
 
 # --- Link libraries ---
 target_link_libraries(app
-    PRIVATE SDL3 glad
+    PRIVATE SDL3 glad cglm
 )
 
 # --- OpenGL (needed on Windows + MinGW) ---

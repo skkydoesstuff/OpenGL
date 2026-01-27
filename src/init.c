@@ -26,4 +26,6 @@ void initContext(const char * title, unsigned int w, unsigned int h, SDL_WindowF
 
     SDL_GL_MakeCurrent(state->window, state->context);
     gladLoadGLLoader((GLADloadproc) SDL_GL_GetProcAddress);
+
+    glEnable(GL_DEPTH_TEST);
 }

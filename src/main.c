@@ -2,6 +2,7 @@
 
 #include <glad/glad.h>
 #include <SDL3/SDL.h>
+#include <cglm/cglm.h>
 
 #include <stdio.h>
 #include <stdbool.h>
@@ -37,16 +38,29 @@ int main(void) {
 
     unsigned int vertexShader = compileShader(readShader("shader.vert"), GL_VERTEX_SHADER);
     unsigned int fragmentShader = compileShader(readShader("shader.frag"), GL_FRAGMENT_SHADER);
-    unsigned int program = createShaderProgram(vertexShader, fragmentShader);
+    unsigned int shaderProgram = createShaderProgram(vertexShader, fragmentShader);
 
     mesh quad = {0};
     quad = createMesh(vertices, 12, indices, 6);
-    glBindVertexArray(quad.VAO);
 
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(float) * 3, (void*)0);
-    glEnableVertexAttribArray(0);
+    glUseProgram(shaderProgram);
 
-    glUseProgram(program);
+    vec3 cameraPos = {0.0f, 0.0f, 3.0f};
+    vec3 cameraTarget = {0.0f, 0.0f, 0.0f};
+    vec3 cameraUp = {0.0f, 1.0f, 0.0f};
+    mat4 view;
+    glm_lookat(cameraPos, cameraTarget, cameraUp, view);
+    glUniformMatrix4fv(glGetUniformLocation(shaderProgram, "view"), 1, GL_FALSE, (const float*)view);
+
+    mat4 model = GLM_MAT4_IDENTITY_INIT;
+    glm_translate(model, (vec3){1.0f, 0.0f, 0.0f}); // move right
+    glm_rotate(model, glm_rad(45.0f), (vec3){0.0f, 1.0f, 0.0f}); // rotate
+    glUniformMatrix4fv(glGetUniformLocation(shaderProgram, "model"), 1, GL_FALSE, (const float*)model);
+
+    mat4 projection;
+    glm_perspective(glm_rad(45.0f), (float)WINDOW_WIDTH / WINDOW_HEIGHT, 0.1f, 100.0f, projection);
+    glUniformMatrix4fv(glGetUniformLocation(shaderProgram, "projection"), 1, GL_FALSE, (const float*)projection);
+
     SDL_ShowWindow(state.window);
 
     state.isRunning = true;
@@ -56,7 +70,7 @@ int main(void) {
             if (event.type == SDL_EVENT_QUIT) state.isRunning = false;
         }
         glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
-        glClear(GL_COLOR_BUFFER_BIT);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         drawMesh(&quad);
 
