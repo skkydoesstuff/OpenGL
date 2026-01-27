@@ -9,6 +9,12 @@
     - SDL3 and GLAD libraries are included in the project.
 
 2. **Building the Project**:
+    - Clone the repo and cd into it:
+      ```bash
+      git clone https://github.com/skkydoesstuff/OpenGL.git
+      cd OpenGL
+      ```
+
     - Run the build script:
       ```bash
       clean_build.bat
