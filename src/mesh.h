@@ -10,4 +10,5 @@ typedef struct mesh {
     uint32_t indexCount;
 } mesh;
 
+mesh createMesh(float vertices[], unsigned int vertexCount, unsigned int indices[], unsigned int indexCount);
 void drawMesh(mesh* shape);

@@ -30,34 +30,18 @@ int main(void) {
     };
 
     unsigned int indices[6] = {
-        0, 1, 2,
-        2, 3, 0
+        // this is the order the vertices connect
+        0, 1, 2, // top right triangle
+        2, 3, 0  // bottom left triangle
     };
 
     unsigned int vertexShader = compileShader(readShader("shader.vert"), GL_VERTEX_SHADER);
     unsigned int fragmentShader = compileShader(readShader("shader.frag"), GL_FRAGMENT_SHADER);
     unsigned int program = createShaderProgram(vertexShader, fragmentShader);
 
-    unsigned int VAO;
-    glGenVertexArrays(1, &VAO);
-    glBindVertexArray(VAO);
-
-    unsigned int VBO;
-    glGenBuffers(1, &VBO);
-    glBindBuffer(GL_ARRAY_BUFFER, VBO);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
-    
-    unsigned int EBO;
-    glGenBuffers(1, &EBO);
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
-
     mesh quad = {0};
-    quad.VAO = VAO;
-    quad.VBO = VBO;
-    quad.EBO = EBO;
-    quad.vertexCount = sizeof(vertices) / sizeof(float);
-    quad.indexCount = sizeof(indices) / sizeof(unsigned int);
+    quad = createMesh(vertices, 12, indices, 6);
+    glBindVertexArray(quad.VAO);
 
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(float) * 3, (void*)0);
     glEnableVertexAttribArray(0);
