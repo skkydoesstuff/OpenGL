@@ -14,6 +14,8 @@
 #include "shaders.h"
 #include "mesh.h"
 #include "mvp.h"
+#include "entity.h"
+#include "renderer.h"
 
 #include "defines.h"
 
@@ -41,6 +43,19 @@ int main(void) {
     mesh quad = {0};
     quad = createMesh(vertices, 12, indices, 6);
 
+    entity quad_e = createEntity(&quad);
+    quad_e.transform.position[0] = 0.0f;
+    quad_e.transform.position[1] = 0.0f;
+    quad_e.transform.position[2] = 0.0f;
+
+    quad_e.transform.rotation[0] = 0.0f;
+    quad_e.transform.rotation[1] = 0.0f;
+    quad_e.transform.rotation[2] = 0.0f;
+
+    quad_e.transform.scale[0] = 1.0f;
+    quad_e.transform.scale[1] = 1.0f;
+    quad_e.transform.scale[2] = 1.0f;
+
     glUseProgram(shaderProgram);
 
     vec3 camPos = {0,0,3};
@@ -58,10 +73,11 @@ int main(void) {
         glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        glm_rotate(mvp.model, glm_rad(1.0f), (vec3){0.0f, 1.0f, 0.0f});
-        submitMVP(&mvp, shaderProgram);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        drawMesh(&quad);
+
+        submitMVP(&mvp, shaderProgram);
+        drawEntity(&quad_e, shaderProgram);
 
         SDL_GL_SwapWindow(state.window);
     }

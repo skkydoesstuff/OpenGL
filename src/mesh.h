@@ -11,4 +11,3 @@ typedef struct mesh {
 } mesh;
 
 mesh createMesh(float vertices[], unsigned int vertexCount, unsigned int indices[], unsigned int indexCount);
-void drawMesh(mesh* shape);

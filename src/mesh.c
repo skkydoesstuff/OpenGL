@@ -18,7 +18,6 @@ mesh createMesh(float vertices[], unsigned int vertexCount, unsigned int indices
     glBindBuffer(GL_ARRAY_BUFFER, shape.VBO);
     glBufferData(GL_ARRAY_BUFFER, vertexCount * sizeof(float), vertices, GL_STATIC_DRAW);
 
-    
     if (indices != NULL) {
         glGenBuffers(1, &shape.EBO);
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, shape.EBO);
@@ -35,13 +34,3 @@ mesh createMesh(float vertices[], unsigned int vertexCount, unsigned int indices
     return shape;
 }
 
-void drawMesh(mesh* shape) {
-    glBindVertexArray(shape->VAO);
-
-    if (shape->EBO)
-        glDrawElements(GL_TRIANGLES, shape->indexCount, GL_UNSIGNED_INT, 0);
-    else
-        glDrawArrays(GL_TRIANGLES, 0, shape->vertexCount);
-
-    glBindVertexArray(0);
-}
