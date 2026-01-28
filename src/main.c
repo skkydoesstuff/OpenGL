@@ -44,17 +44,12 @@ int main(void) {
     quad = createMesh(vertices, 12, indices, 6);
 
     entity quad_e = createEntity(&quad);
-    quad_e.transform.position[0] = 0.0f;
-    quad_e.transform.position[1] = 0.0f;
-    quad_e.transform.position[2] = 0.0f;
+    setPosition(&quad_e, 0, 0, 0);
+    setRotation(&quad_e, 0, 0, 0);
 
-    quad_e.transform.rotation[0] = 0.0f;
-    quad_e.transform.rotation[1] = 0.0f;
-    quad_e.transform.rotation[2] = 0.0f;
-
-    quad_e.transform.scale[0] = 1.0f;
-    quad_e.transform.scale[1] = 1.0f;
-    quad_e.transform.scale[2] = 1.0f;
+    entity quad_e2 = createEntity(&quad);
+    setPosition(&quad_e2, 0, 2, 0);
+    setRotation(&quad_e2, 0, 0, 0);
 
     glUseProgram(shaderProgram);
 
@@ -75,9 +70,11 @@ int main(void) {
 
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+        quad_e.transform.rotation[1] += glm_rad(1.0f);
 
         submitMVP(&mvp, shaderProgram);
         drawEntity(&quad_e, shaderProgram);
+        drawEntity(&quad_e2, shaderProgram);
 
         SDL_GL_SwapWindow(state.window);
     }

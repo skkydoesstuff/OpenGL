@@ -17,7 +17,7 @@ void drawMesh(mesh* shape) {
 }
 
 void drawEntity(entity* e, unsigned int shaderProgram) {
-    glUseProgram(shaderProgram); // MUST bind before setting uniforms
+    glUseProgram(shaderProgram);
 
     mat4 model;
     transform_build_model(model, &e->transform);
