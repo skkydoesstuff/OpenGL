@@ -13,11 +13,9 @@
 #include "cleanup.h"
 #include "shaders.h"
 #include "mesh.h"
+#include "mvp.h"
 
-#define WINDOW_TITLE "title"
-#define WINDOW_WIDTH 800
-#define WINDOW_HEIGHT 600
-#define WINDOW_FLAGS (SDL_WINDOW_HIDDEN | SDL_WINDOW_OPENGL)
+#include "defines.h"
 
 int main(void) {
     engineState state = {0};
@@ -45,32 +43,23 @@ int main(void) {
 
     glUseProgram(shaderProgram);
 
-    vec3 cameraPos = {0.0f, 0.0f, 3.0f};
-    vec3 cameraTarget = {0.0f, 0.0f, 0.0f};
-    vec3 cameraUp = {0.0f, 1.0f, 0.0f};
-    mat4 view;
-    glm_lookat(cameraPos, cameraTarget, cameraUp, view);
-    glUniformMatrix4fv(glGetUniformLocation(shaderProgram, "view"), 1, GL_FALSE, (const float*)view);
-
-    mat4 model = GLM_MAT4_IDENTITY_INIT;
-    glm_translate(model, (vec3){1.0f, 0.0f, 0.0f}); // move right
-    glm_rotate(model, glm_rad(45.0f), (vec3){0.0f, 1.0f, 0.0f}); // rotate
-    glUniformMatrix4fv(glGetUniformLocation(shaderProgram, "model"), 1, GL_FALSE, (const float*)model);
-
-    mat4 projection;
-    glm_perspective(glm_rad(45.0f), (float)WINDOW_WIDTH / WINDOW_HEIGHT, 0.1f, 100.0f, projection);
-    glUniformMatrix4fv(glGetUniformLocation(shaderProgram, "projection"), 1, GL_FALSE, (const float*)projection);
+    vec3 camPos = {0,0,3};
+    MVP mvp = createMVP(camPos, glm_rad(FOV), 0.01f, 100.0f);
 
     SDL_ShowWindow(state.window);
 
     state.isRunning = true;
     SDL_Event event;
+
     while (state.isRunning == true) {
         while (SDL_PollEvent(&event)) {
             if (event.type == SDL_EVENT_QUIT) state.isRunning = false;
         }
         glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+        glm_rotate(mvp.model, glm_rad(1.0f), (vec3){0.0f, 1.0f, 0.0f});
+        submitMVP(&mvp, shaderProgram);
 
         drawMesh(&quad);
 

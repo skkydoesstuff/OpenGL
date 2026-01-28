@@ -4,6 +4,7 @@
 #include "engineState.h"
 #include "error_handling.h"
 #include "init.h"
+#include "defines.h"
 
 void initContext(const char * title, unsigned int w, unsigned int h, SDL_WindowFlags windowFlags, engineState* state) {
     if (!SDL_Init(INIT)) {
@@ -28,4 +29,7 @@ void initContext(const char * title, unsigned int w, unsigned int h, SDL_WindowF
     gladLoadGLLoader((GLADloadproc) SDL_GL_GetProcAddress);
 
     glEnable(GL_DEPTH_TEST);
+    if (WIREFRAME == true) {
+        glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+    }
 }
