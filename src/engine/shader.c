@@ -43,9 +43,9 @@ char* readShader(const char* path) {
     return result;
 }
 
-unsigned int compileShader(const char* const* source, unsigned int type) {
+unsigned int compileShader(const char* source, unsigned int type) {
     unsigned int shader = glCreateShader(type);
-    glShaderSource(shader, 1, source, NULL);
+    glShaderSource(shader, 1, &source, NULL);
     glCompileShader(shader);
 
     int success;
@@ -66,7 +66,9 @@ unsigned int compileShader(const char* const* source, unsigned int type) {
 }
 
 
-unsigned int createShaderProgram(const char* const* vertSource, const char* const* fragSource) {
+unsigned int createShaderProgram(const char* vertFilePath, const char* fragFilePath) {
+    char* vertSource = readShader(vertFilePath);
+    char* fragSource = readShader(fragFilePath);
     unsigned int vertexShader = compileShader(vertSource, GL_VERTEX_SHADER);
     unsigned int fragmentShader = compileShader(fragSource, GL_FRAGMENT_SHADER);
 
@@ -91,4 +93,45 @@ unsigned int createShaderProgram(const char* const* vertSource, const char* cons
     glDeleteShader(fragmentShader);
 
     return program;
+}
+
+shader shader_create(const char* vertPath, const char* fragPath)
+{
+    shader s = {0};
+    s.program = createShaderProgram(vertPath, fragPath);
+    return s;
+}
+
+void shader_use(const shader* s)
+{
+    glUseProgram(s->program);
+}
+
+void shader_destroy(shader* s)
+{
+    if (s->program) {
+        glDeleteProgram(s->program);
+        s->program = 0;
+    }
+}
+
+static int shader_uniform(shader* s, const char* name) {
+    for (unsigned int i = 0; i < s->uniform_count; ++i)
+        if (strcmp(s->uniforms[i].name, name) == 0)
+            return s->uniforms[i].location;
+
+    int loc = glGetUniformLocation(s->program, name);
+    if (loc != -1 && s->uniform_count < 32) {
+        s->uniforms[s->uniform_count].name = name;
+        s->uniforms[s->uniform_count].location = loc;
+        s->uniform_count++;
+    }
+    return loc;
+}
+
+void shader_setMat4f(shader* s, const char* name, const float* mat) {
+    int loc = shader_uniform(s, name);
+    if (loc != -1) {
+        glUniformMatrix4fv(loc, 1, GL_FALSE, mat);
+    }
 }

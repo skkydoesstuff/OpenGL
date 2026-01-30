@@ -4,26 +4,19 @@
 
 #include "game.h"
 #include "shader.h"
+#include "mesh.h"
 
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
 
-typedef struct mesh {
-    unsigned int VAO;
-    unsigned int VBO;
-    unsigned int EBO;
-    unsigned int vertexCount;
-    unsigned int indexCount;
-
-    mat4 model;
-} mesh;
-
 typedef struct entity {
-    mesh mesh;
+    mesh* mesh;
     vec3 position;
     vec3 rotation;
     vec3 scale;
+
+    mat4 model;
 } entity; 
 
 void zeroEntity(entity* e) {
@@ -34,18 +27,18 @@ void zeroEntity(entity* e) {
     e->scale[2] = 1.0f;
 }
 
-void constructModel(entity* e, unsigned int shaderProgram) {
-    glm_mat4_identity(e->mesh.model);
-    glm_translate(e->mesh.model, e->position);
-    glm_rotate(e->mesh.model, e->rotation[0], (vec3){1.0f, 0.0f, 0.0f});
-    glm_rotate(e->mesh.model, e->rotation[1], (vec3){0.0f, 1.0f, 0.0f});
-    glm_rotate(e->mesh.model, e->rotation[2], (vec3){0.0f, 0.0f, 1.0f});
-    glm_scale(e->mesh.model, e->scale);
+void constructModel(entity* e) {
+    glm_mat4_identity(e->model);
+    glm_translate(e->model, e->position);
+    glm_rotate(e->model, e->rotation[0], (vec3){1.0f, 0.0f, 0.0f});
+    glm_rotate(e->model, e->rotation[1], (vec3){0.0f, 1.0f, 0.0f});
+    glm_rotate(e->model, e->rotation[2], (vec3){0.0f, 0.0f, 1.0f});
+    glm_scale(e->model, e->scale);
 }
 
 mesh triangle = {0};
 entity triangle_e = {0};
-unsigned int program;
+shader shaderObj = {0};
 
 void setup() {
     float vertices[9] = {
@@ -53,27 +46,14 @@ void setup() {
         0.5f, -0.5f, 0.0f,
         -0.5f, -0.5f, 0.0f
     };
-
-    const char *base = SDL_GetBasePath();
-
-    const char* vertSrc = readShader("shader.vert");
-    const char* fragSrc = readShader("shader.frag");
     
-    program = createShaderProgram(&vertSrc, &fragSrc);
-    glUseProgram(program);
+    shaderObj = shader_create("shader.vert", "shader.frag");
+    shader_use(&shaderObj);
 
-    glGenVertexArrays(1, &triangle.VAO);
-    glBindVertexArray(triangle.VAO);
-
-    glGenBuffers(1, &triangle.VBO);
-    glBindBuffer(GL_ARRAY_BUFFER, triangle.VBO);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), &vertices, GL_STATIC_DRAW);
+    mesh_init(&triangle, vertices, (sizeof(vertices) / sizeof(vertices[0])), NULL, 0);
 
     zeroEntity(&triangle_e);
-    triangle_e.mesh = triangle;
-
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void *)0);
-    glEnableVertexAttribArray(0);
+    triangle_e.mesh = &triangle;
 
     mat4 view;
     glm_lookat(
@@ -86,11 +66,8 @@ void setup() {
     mat4 projection;
     glm_perspective(glm_rad(90.0f), 800.0f/600.0f, 0.1f, 100.f, projection);
 
-    unsigned int viewID = glGetUniformLocation(program, "view");
-    unsigned int projectionID = glGetUniformLocation(program, "projection");
-
-    glUniformMatrix4fv(viewID, 1, GL_FALSE, (float*)view);
-    glUniformMatrix4fv(projectionID, 1, GL_FALSE, (float*)projection);
+    shader_setMat4f(&shaderObj, "view", (float*)view);
+    shader_setMat4f(&shaderObj, "projection", (float*)projection);
 
     triangle.vertexCount = sizeof(vertices) / sizeof(float);
 }
@@ -98,15 +75,18 @@ void setup() {
 void physicsLoop(){}
 
 void renderLoop() {
-    constructModel(&triangle_e, program);
+    constructModel(&triangle_e);
 
-    triangle_e.rotation[1] += 1;
-    unsigned int modelID = glGetUniformLocation(program, "model");
-    glUniformMatrix4fv(modelID, 1, GL_FALSE, (float*) triangle_e.mesh.model);
+    triangle_e.rotation[1] += 0.1;
+    shader_setMat4f(&shaderObj, "model", (float*)triangle_e.model);
 
     glDrawArrays(GL_TRIANGLES, 0, 3);
 }
 
 void logicLoop() {
+
+}
+
+void cleanup() {
 
 }

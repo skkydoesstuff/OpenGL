@@ -73,6 +73,8 @@ int main() {
         SDL_Delay(1);
     }
 
+    cleanup();
+
     SDL_GL_DestroyContext(state.context);
     SDL_DestroyWindow(state.window);
     exit(EXIT_SUCCESS);

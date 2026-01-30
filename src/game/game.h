@@ -7,3 +7,5 @@ void physicsLoop();
 void renderLoop();
 
 void logicLoop();
+
+void cleanup();
