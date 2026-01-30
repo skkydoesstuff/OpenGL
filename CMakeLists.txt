@@ -7,7 +7,11 @@ set(CMAKE_BUILD_TYPE DEBUG)
 
 # --- GLAD ---
 add_library(glad STATIC external/glad/src/glad.c)
-target_include_directories(glad PUBLIC external/glad/include)
+target_include_directories(glad PUBLIC 
+    external/glad/include
+    src/engine
+    src/game
+)
 
 # --- SDL3 ---
 add_library(SDL3 STATIC IMPORTED)
@@ -24,10 +28,14 @@ set_target_properties(cglm PROPERTIES
 )
 
 # --- Collect all .c source files under src ---
-file(GLOB_RECURSE SRC_FILES "${CMAKE_SOURCE_DIR}/src/*.c")
+file(GLOB_RECURSE ENGINE_SRC_FILES "${CMAKE_SOURCE_DIR}/src/engine/*.c")
+file(GLOB_RECURSE GAME_SRC_FILES "${CMAKE_SOURCE_DIR}/src/game/*.c")
 
 # --- Executable ---
-add_executable(app ${SRC_FILES})
+add_executable(app 
+    ${ENGINE_SRC_FILES}
+    ${GAME_SRC_FILES}
+)
 
 # --- Link libraries ---
 target_link_libraries(app

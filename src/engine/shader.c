@@ -1,11 +1,12 @@
 #include <GLAD/glad.h>
-#include <SDL3/SDL.h>
+#include <SDL3/sdl.h>
 
-#include "shaders.h"
-#include "error_handling.h"
+#include "shader.h"
 
-#include <string.h>
+#include <stdio.h>
 #include <stdlib.h>
+#include <stdbool.h>
+#include <string.h>
 
 #define INITIAL_BUFFER_SIZE 1024
 
@@ -17,7 +18,7 @@ char* readShader(const char* path) {
     
     FILE *file = fopen(finalPath, "r");
     if (file == NULL) {
-        throw_error(strcat("Could not open file: ", finalPath));
+        exit(EXIT_FAILURE);
         free(finalPath);
         return NULL;
     }
@@ -42,33 +43,48 @@ char* readShader(const char* path) {
     return result;
 }
 
-unsigned int compileShader(const char* shaderSource, GLenum type) {
+unsigned int compileShader(const char* const* source, unsigned int type) {
     unsigned int shader = glCreateShader(type);
-    glShaderSource(shader, 1, &shaderSource, NULL);
+    glShaderSource(shader, 1, source, NULL);
     glCompileShader(shader);
 
     int success;
-    char infoLog[512];
     glGetShaderiv(shader, GL_COMPILE_STATUS, &success);
+
     if (!success) {
-        glGetShaderInfoLog(shader, 512, NULL, infoLog);
-        throw_error(strcat("failed to compile shader: ", infoLog));
+        int len;
+        glGetShaderiv(shader, GL_INFO_LOG_LENGTH, &len);
+        char* log = malloc(len);
+        glGetShaderInfoLog(shader, len, NULL, log);
+        fprintf(stderr, "Shader compile error:\n%s\n", log);
+        free(log);
+        glDeleteShader(shader);
+        return 0;
     }
+
     return shader;
 }
 
-unsigned int createShaderProgram(unsigned int vertexShader, unsigned int fragmentShader) {
+
+unsigned int createShaderProgram(const char* const* vertSource, const char* const* fragSource) {
+    unsigned int vertexShader = compileShader(vertSource, GL_VERTEX_SHADER);
+    unsigned int fragmentShader = compileShader(fragSource, GL_FRAGMENT_SHADER);
+
     unsigned int program = glCreateProgram();
     glAttachShader(program, vertexShader);
     glAttachShader(program, fragmentShader);
     glLinkProgram(program);
 
     int success;
-    char infoLog[512];
     glGetProgramiv(program, GL_LINK_STATUS, &success);
-    if (!success) {
-        glGetProgramInfoLog(program, 512, NULL, infoLog);
-        fprintf(stderr, "ERROR: Shader program linking failed:\n%s\n", infoLog);
+    int log_length;
+    glGetProgramiv(program, GL_INFO_LOG_LENGTH, &log_length);
+
+    if (log_length > 0) {
+        GLchar *info_log = (GLchar *)malloc(log_length * sizeof(GLchar));
+        glGetProgramInfoLog(program, log_length, NULL, info_log);
+        fprintf(stderr, "Shader Compilation Error: %s\n", info_log);
+        free(info_log);
     }
 
     glDeleteShader(vertexShader);
