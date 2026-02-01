@@ -8,6 +8,8 @@ Mesh::Mesh(float* vertices, unsigned int vertexCount_p, unsigned int floatsPerVe
     this->vertexCount = vertexCount_p;
     this->indexCount  = indexCount_p;
 
+    unsigned int strideBytes = floatsPerVertex * sizeof(float);
+
     glGenVertexArrays(1, &VAO);
     glBindVertexArray(VAO);
 
@@ -15,7 +17,7 @@ Mesh::Mesh(float* vertices, unsigned int vertexCount_p, unsigned int floatsPerVe
     glBindBuffer(GL_ARRAY_BUFFER, VBO);
     glBufferData(
         GL_ARRAY_BUFFER,
-        this->vertexCount * 3 * sizeof(float),
+        this->vertexCount * floatsPerVertex * sizeof(float),
         vertices,
         GL_STATIC_DRAW
     );
@@ -32,8 +34,30 @@ Mesh::Mesh(float* vertices, unsigned int vertexCount_p, unsigned int floatsPerVe
         );
     }
 
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, floatsPerVertex * sizeof(float), (void*)0);
+    glVertexAttribPointer(
+        0, 3, GL_FLOAT, GL_FALSE,
+        strideBytes,
+        (void*)0
+    );
+
+    glVertexAttribPointer(
+        1, 2, GL_FLOAT, GL_FALSE,
+        strideBytes,
+        (void*)(3 * sizeof(float))
+    );
+
     glEnableVertexAttribArray(0);
+    glEnableVertexAttribArray(1);
 
     glBindVertexArray(0);
+}
+
+void Mesh::Draw() {
+    glBindVertexArray(this->VAO);
+    
+    if (this->indexCount > 0) {
+        glDrawElements(GL_TRIANGLES, this->indexCount, GL_UNSIGNED_INT, (void*)0);
+    } else {
+        glDrawArrays(GL_TRIANGLES, 0, this->vertexCount);
+    }
 }

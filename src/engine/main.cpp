@@ -17,6 +17,8 @@
 #include "shader.hpp"
 #include "mesh.hpp"
 #include "entity.hpp"
+#include "material.hpp"
+#include "texture.hpp"
 
 #define WIDTH 800
 #define HEIGHT 600
@@ -55,17 +57,28 @@ engineState init() {
 int main() {
     engineState state = init();
 
-    float vertices[9] = {
-        0.0f, 0.5f, 0.0f,
-        0.5f, -0.5f, 0.0f,
-        -0.5f, -0.5f, 0.0f
+    float vertices[] = {
+        // positions        // uvs
+        -0.5f,  0.5f, 0.0f,  0.0f, 1.0f,  // top-left
+        0.5f,  0.5f, 0.0f,  1.0f, 1.0f,  // top-right
+        0.5f, -0.5f, 0.0f,  1.0f, 0.0f,  // bottom-right
+        -0.5f, -0.5f, 0.0f,  0.0f, 0.0f   // bottom-left
+    };
+
+    unsigned int indices[] = {
+        0, 1, 2,  // first triangle (top-left, top-right, bottom-right)
+        2, 3, 0   // second triangle (bottom-right, bottom-left, top-left)
     };
 
     Shader shader("shader.vert", "shader.frag");
     shader.Bind();
 
-    Mesh triangle(vertices, 3, 3, NULL, 0);
-    Entity triangle_e(&triangle, &shader);
+    Mesh square(vertices, 4, 5, indices, 6);
+    unsigned int tex = LoadTexture("brick.png");
+    Material mat;
+    mat.shader = &shader;
+    mat.diffuseTex = tex;
+    Entity square_e(&square, &mat);
 
     glm::mat4 view = glm::mat4(1.0f);
     view = glm::translate(view, glm::vec3(0.0f, 0.0f, -3.0f));
@@ -85,14 +98,12 @@ int main() {
 
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        shader.setMat4f(view, "view");
-        shader.setMat4f(projection, "projection");
+        mat.shader->Bind();
+        mat.shader->setMat4f(view, "view");
+        mat.shader->setMat4f(projection, "projection");
 
-        triangle_e.transform.rotation.y += 0.1f;
-        triangle_e.draw();
-
-        glBindVertexArray(triangle.VAO);
-        glDrawArrays(GL_TRIANGLES, 0, triangle.vertexCount);
+        square_e.transform.rotation.y += 0.1f;
+        square_e.Render();
 
         SDL_GL_SwapWindow(state.window);
     }

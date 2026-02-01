@@ -3,6 +3,7 @@
 #include <glm/glm.hpp>
 #include "shader.hpp"
 #include "mesh.hpp"
+#include "material.hpp"
 
 typedef struct Transform {
     glm::vec3 position;
@@ -14,14 +15,13 @@ class Entity {
 private:
     glm::mat4 model;
     Mesh* mesh;
-    Shader* shader;
 
     void updateModelMatrix();
 
 public:
     Transform transform;
+    Material* material = nullptr;
     
-    Entity(Mesh* mesh, Shader* shader);
-
-    void draw();
+    Entity(Mesh* mesh, Material* mat);
+    void Render();
 };

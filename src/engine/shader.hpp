@@ -22,4 +22,5 @@ public:
     
     void Bind();
     void setMat4f(glm::mat4 mat, const std::string& name);
+    void setInt(int val, const std::string& name);
 };

@@ -10,4 +10,6 @@ public:
 
     Mesh(float* vertices, unsigned int vertexCount_p, unsigned int floatsPerVertex,
         unsigned int* indices, unsigned int indexCount_p);
+
+    void Draw();
 };

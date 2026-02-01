@@ -9,6 +9,7 @@ add_library(glad STATIC external/glad/src/glad.c)
 target_include_directories(glad PUBLIC 
     external/glad/include
     external/glm
+    external/stb_image
     src/engine
     src/game
 )

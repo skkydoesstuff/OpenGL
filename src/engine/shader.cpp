@@ -77,3 +77,8 @@ void Shader::setMat4f(glm::mat4 mat, const std::string& name) {
     unsigned int loc = getLocation(name);
     glUniformMatrix4fv(loc, 1, GL_FALSE, glm::value_ptr(mat));
 }
+
+void Shader::setInt(int val, const std::string& name) {
+    unsigned int loc = getLocation(name);
+    glUniform1i(loc, val);
+}

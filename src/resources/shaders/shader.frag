@@ -1,8 +1,10 @@
 #version 330 core
 
+in vec2 vUV;
 out vec4 FragColor;
 
-void main()
-{
-    FragColor = vec4(0.2, 0.8, 0.4, 1.0); // greenish triangle
+uniform sampler2D u_Diffuse;
+
+void main() {
+    FragColor = texture(u_Diffuse, vUV);
 }

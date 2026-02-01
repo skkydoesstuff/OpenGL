@@ -1,7 +1,10 @@
 #include <GLAD/glad.h>
+#include <glm/glm.hpp>
 #include <glm/ext/matrix_transform.hpp>
 
 #include "entity.hpp"
+#include "mesh.hpp"
+#include "material.hpp"
 
 void Entity::updateModelMatrix() {
     this->model = glm::mat4(1.0f);
@@ -12,23 +15,28 @@ void Entity::updateModelMatrix() {
     this->model = glm::scale(this->model, this->transform.scale);
 }
 
-Entity::Entity(Mesh* mesh, Shader* shader) {
+Entity::Entity(Mesh* mesh, Material* mat) {
     this->mesh = mesh;
-    this->shader = shader;
     this->transform.position = glm::vec3(0.0f, 0.0f, 0.0f);
     this->transform.rotation = glm::vec3(0.0f, 0.0f, 0.0f);
     this->transform.scale = glm::vec3(1.0f, 1.0f, 1.0f);
+
+    this->material = mat;
 }
 
-void Entity::draw() {
-    updateModelMatrix();
-    shader->setMat4f(this->model, "model");
+void Entity::Render() {
+    Shader* s = this->material->shader;
+    s->Bind();
 
-    glBindVertexArray(this->mesh->VAO);
-    
-    if (this->mesh->indexCount > 0) {
-        glDrawElements(GL_TRIANGLES, this->mesh->indexCount, GL_UNSIGNED_INT, (void*)0);
-    } else {
-        glDrawArrays(GL_TRIANGLES, 0, this->mesh->vertexCount);
+    this->updateModelMatrix();
+
+    s->setMat4f(this->model, "model");
+
+    if (this->material->diffuseTex) {
+        glActiveTexture(GL_TEXTURE0);
+        glBindTexture(GL_TEXTURE_2D, this->material->diffuseTex);
+        s->setInt(0, "u_diffuse");
     }
+
+    this->mesh->Draw();
 }
