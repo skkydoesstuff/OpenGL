@@ -33,9 +33,7 @@ void Entity::Render() {
     s->setMat4f(this->model, "model");
 
     if (this->material->diffuseTex) {
-        glActiveTexture(GL_TEXTURE0);
-        glBindTexture(GL_TEXTURE_2D, this->material->diffuseTex);
-        s->setInt(0, "u_diffuse");
+        this->material->Bind();
     }
 
     this->mesh->Draw();

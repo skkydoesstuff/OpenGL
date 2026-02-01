@@ -75,11 +75,8 @@ int main() {
 
     Mesh square(vertices, 4, 5, indices, 6);
     unsigned int tex = LoadTexture("brick.png");
-    Material mat;
-    mat.shader = &shader;
-    mat.diffuseTex = tex;
+    Material mat(&shader, 0);
     Entity square_e(&square, &mat);
-
     glm::mat4 view = glm::mat4(1.0f);
     view = glm::translate(view, glm::vec3(0.0f, 0.0f, -3.0f));
 
