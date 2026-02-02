@@ -54,9 +54,7 @@ engineState init() {
     return s;
 }
 
-int main() {
-    engineState state = init();
-
+Mesh createSquare() {
     float vertices[] = {
         // positions        // uvs
         -0.5f,  0.5f, 0.0f,  0.0f, 1.0f,  // top-left
@@ -69,14 +67,60 @@ int main() {
         0, 1, 2,  // first triangle (top-left, top-right, bottom-right)
         2, 3, 0   // second triangle (bottom-right, bottom-left, top-left)
     };
+    Mesh square(vertices, 4, 5, indices, 6);
+
+    return square;
+}
+
+Mesh createCube() {
+    float vertices[] = {
+        // positions            // uvs
+        // front
+        -0.5f, -0.5f,  0.5f,    0.0f, 0.0f,
+         0.5f, -0.5f,  0.5f,    1.0f, 0.0f,
+         0.5f,  0.5f,  0.5f,    1.0f, 1.0f,
+        -0.5f,  0.5f,  0.5f,    0.0f, 1.0f,
+
+        // back
+        -0.5f, -0.5f, -0.5f,    1.0f, 0.0f,
+         0.5f, -0.5f, -0.5f,    0.0f, 0.0f,
+         0.5f,  0.5f, -0.5f,    0.0f, 1.0f,
+        -0.5f,  0.5f, -0.5f,    1.0f, 1.0f,
+    };
+
+    unsigned int indices[] = {
+        // front
+        0, 1, 2,  2, 3, 0,
+        // right
+        1, 5, 6,  6, 2, 1,
+        // back
+        5, 4, 7,  7, 6, 5,
+        // left
+        4, 0, 3,  3, 7, 4,
+        // top
+        3, 2, 6,  6, 7, 3,
+        // bottom
+        4, 5, 1,  1, 0, 4
+    };
+
+    Mesh cube(vertices, 8, 5, indices, 36);
+    return cube;
+}
+
+
+int main() {
+    engineState state = init();
 
     Shader shader("shader.vert", "shader.frag");
     shader.Bind();
 
-    Mesh square(vertices, 4, 5, indices, 6);
     unsigned int tex = LoadTexture("brick.png");
-    Material mat(&shader, 0);
-    Entity square_e(&square, &mat);
+    unsigned int tex2 = LoadTexture("brick2.png");
+
+    Mesh cube = createCube();
+    Material mat2(&shader, tex2);
+    Entity cube_e(&cube, &mat2);
+
     glm::mat4 view = glm::mat4(1.0f);
     view = glm::translate(view, glm::vec3(0.0f, 0.0f, -3.0f));
 
@@ -95,12 +139,13 @@ int main() {
 
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        mat.shader->Bind();
-        mat.shader->setMat4f(view, "view");
-        mat.shader->setMat4f(projection, "projection");
+        shader.Bind();
+        shader.setMat4f(view, "view");
+        shader.setMat4f(projection, "projection");
 
-        square_e.transform.rotation.y += 0.1f;
-        square_e.Render();
+        cube_e.transform.rotation.y += 0.01f;
+        cube_e.transform.rotation.x += 0.01f;
+        cube_e.Render();
 
         SDL_GL_SwapWindow(state.window);
     }

@@ -15,12 +15,12 @@ class Entity {
 private:
     glm::mat4 model;
     Mesh* mesh;
+    Material* material = nullptr;
 
     void updateModelMatrix();
 
 public:
     Transform transform;
-    Material* material = nullptr;
     
     Entity(Mesh* mesh, Material* mat);
     void Render();
