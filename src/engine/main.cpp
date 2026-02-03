@@ -145,7 +145,8 @@ int main() {
         shader.setMat4f(view, "view");
         shader.setMat4f(projection, "projection");
 
-        cube_e.color = glm::vec3(0.0f, 0.0f, 0.0f);
+        cube_e.color = glm::vec3(1.0f, 0.0f, 1.0f);
+        cube_e.opacity = 0.5f;
         cube_e.transform.rotation.y += 0.01f;
         cube_e.transform.rotation.x += 0.01f;
         cube_e.Render();
