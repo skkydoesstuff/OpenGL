@@ -50,6 +50,8 @@ engineState init() {
 
     glViewport(0,0,WIDTH,HEIGHT);
     glEnable(GL_DEPTH_TEST);
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
     return s;
 }
@@ -143,6 +145,7 @@ int main() {
         shader.setMat4f(view, "view");
         shader.setMat4f(projection, "projection");
 
+        cube_e.color = glm::vec3(0.0f, 0.0f, 0.0f);
         cube_e.transform.rotation.y += 0.01f;
         cube_e.transform.rotation.x += 0.01f;
         cube_e.Render();

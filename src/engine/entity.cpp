@@ -32,6 +32,12 @@ void Entity::Render() {
 
     s->setMat4f(this->model, "model");
 
+    if (this->color.r == 0.0f && this->color.g == 0.0f && this->color.b == 0.0f) {
+        s->setVec4(glm::vec4(1.0f, 1.0f, 1.0f, this->transparency), "color");
+    } else {
+        s->setVec4(glm::vec4(this->color.r, this->color.g, this->color.b, this->transparency), "color");
+    }
+
     if (this->material->diffuseTex) {
         this->material->Bind();
     }

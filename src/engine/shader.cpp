@@ -82,3 +82,13 @@ void Shader::setInt(int val, const std::string& name) {
     unsigned int loc = getLocation(name);
     glUniform1i(loc, val);
 }
+
+void Shader::setVec3(glm::vec3 vec, const std::string& name) {
+    unsigned int loc = getLocation(name);
+    glUniform3fv(loc, 1, glm::value_ptr(vec));
+}
+
+void Shader::setVec4(glm::vec4 vec, const std::string& name) {
+    unsigned int loc = getLocation(name);
+    glUniform4fv(loc, 1, glm::value_ptr(vec));
+}

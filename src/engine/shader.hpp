@@ -23,4 +23,6 @@ public:
     void Bind();
     void setMat4f(glm::mat4 mat, const std::string& name);
     void setInt(int val, const std::string& name);
+    void setVec3(glm::vec3 vec, const std::string& name);
+    void setVec4(glm::vec4 vec, const std::string& name);
 };

@@ -21,6 +21,8 @@ private:
 
 public:
     Transform transform;
+    glm::vec3 color = glm::vec3(0.0f, 0.0f, 0.0f);
+    float transparency = 1.0f;
     
     Entity(Mesh* mesh, Material* mat);
     void Render();
