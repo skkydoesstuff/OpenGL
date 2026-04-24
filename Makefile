@@ -32,6 +32,7 @@ APP_SOURCES := \
     src/app/setup.cpp \
     src/app/run.cpp \
     src/app/mainLoop.cpp \
+    src/app/logic.cpp \
     src/app/imguiRender.cpp \
     src/app/render.cpp \
     src/app/cleanup.cpp \

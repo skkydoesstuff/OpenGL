@@ -13,6 +13,8 @@ void App::mainLoop() {
             ImGui_ImplGlfw_Sleep(10);
         }
 
+        this->logicLoop();
+
         this->imguiRender();
 
         this->render();

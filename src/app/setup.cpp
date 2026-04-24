@@ -70,6 +70,10 @@ void App::setup() {
     std::shared_ptr<Shader> outlineShader = this->rm.shaders.create("outline", "blit.vert", "outline.frag");
     std::shared_ptr<Shader> pixelatedShader = this->rm.shaders.create("pixelated", "blit.vert", "pixelated.frag");
 
+    std::shared_ptr<Shader> thresholdShader = this->rm.shaders.create("threshold", "blit.vert", "threshold.frag");
+    std::shared_ptr<Shader> blurShader = this->rm.shaders.create("blur", "blit.vert", "blur.frag");
+    std::shared_ptr<Shader> compositeShader = this->rm.shaders.create("composite", "blit.vert", "composite.frag");
+
     std::shared_ptr<Texture> tex = this->rm.textures.create("container", assetDir + "textures\\container.png");
     std::shared_ptr<Texture> texSpec = this->rm.textures.create("container_spec", assetDir + "textures\\container.spec.png");
 
@@ -94,31 +98,43 @@ void App::setup() {
     this->cam = new Camera(45.0f, (float)this->width/(float)this->height, 0.1f, 100.0f);
     cam->position = {0.0f, 0.0f, 1.0f};
     cam->rotation = {0.0f, -90.0f, 0.0f};
+
+    scanlineOn = false;
+    outlineOn = false;
+    pixelatedOn = false;
+
+    this->normThresh = 0.2f;
+    this->edgeStrength = 1.5f;
+    this->depthThresh = 0.01f;
+    this->edgeWidth = 2.0f;
+
+    this->scanThickness = 2.0f;
+    this->scanDarkness = 0.6f;
+    this->phosphorStrength = 1.5f;
+    this->glowStrength = 0.3f;
+    this->vignetteStrength = 0.35f;
+    this->brightBoost = 1.15f;
     
-    PostProcessPass outline;
-    outline.shader = outlineShader;
-    outline.uniforms["uNormalThreshold"] = 0.20f;
-    outline.uniforms["uEdgeStrength"] = 1.5f;
-    outline.uniforms["uDepthThreshold"] = 0.01f;
-    outline.uniforms["uEdgeWidth"] = 2.0f;
+    this->pixelSize = 4.0f;
 
-    PostProcessPass scanline;
     scanline.shader = scanlineShader;
-    scanline.uniforms["uScanlineThickness"] = 2.0f;
-    scanline.uniforms["uScanlineDarkness"]  = 0.6f;
-    scanline.uniforms["uPhosphorStrength"]  = 1.5f;
-    scanline.uniforms["uGlowStrength"]      = 0.3f;
-    scanline.uniforms["uVignetteStrength"]  = 0.35f;
-    scanline.uniforms["uBrightBoost"]       = 1.15f;
+    scanline.uniforms["uScanlineThickness"] = scanThickness;
+    scanline.uniforms["uScanlineDarkness"]  = scanDarkness;
+    scanline.uniforms["uPhosphorStrength"]  = phosphorStrength;
+    scanline.uniforms["uGlowStrength"]      = glowStrength;
+    scanline.uniforms["uVignetteStrength"]  = vignetteStrength;
+    scanline.uniforms["uBrightBoost"]       = brightBoost;
 
-    PostProcessPass pixelated;
+    outline.shader = outlineShader;
+    outline.uniforms["uNormalThreshold"] = normThresh;
+    outline.uniforms["uEdgeStrength"] = edgeStrength;
+    outline.uniforms["uDepthThreshold"] = depthThresh;
+    outline.uniforms["uEdgeWidth"] = edgeWidth;
+
     pixelated.shader = pixelatedShader;
-    pixelated.uniforms["uPixelSize"] = 4.0f;
-
+    pixelated.uniforms["uPixelSize"] = pixelSize;
+    
     std::shared_ptr<Renderer> r = this->rm.renderers.create("main");
     r->init(this->width, this->height);
-    r->addPass(scanline);
-    r->addPass(outline);
-    r->addPass(pixelated);
 }
  

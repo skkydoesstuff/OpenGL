@@ -20,4 +20,5 @@ using UniformValue = std::variant<
 struct PostProcessPass {
     std::shared_ptr<Shader> shader;
     std::unordered_map<std::string, UniformValue> uniforms;
+    bool useBrightBuffer;
 };
