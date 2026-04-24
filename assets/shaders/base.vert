@@ -6,7 +6,6 @@ layout (location = 2) in vec2 aTexCoord;
 uniform mat4 model;
 uniform mat4 view;
 uniform mat4 projection;
-uniform mat3 normalMatrix;   // pass transpose(inverse(mat3(model))) from CPU
 
 out vec3 fragPos;
 out vec3 normal;             // now world-space
@@ -14,7 +13,8 @@ out vec2 texCoord;
 
 void main() {
     gl_Position = projection * view * model * vec4(aPos, 1.0);
-    fragPos     = vec3(model * vec4(aPos, 1.0));
+    fragPos = vec3(model * vec4(aPos, 1.0));  // world space ✓
+    mat3 normalMatrix = transpose(inverse(mat3(model)));
     normal      = normalMatrix * aNormal;   // world-space, scale-safe
     texCoord    = aTexCoord;
 }

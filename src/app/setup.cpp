@@ -82,10 +82,13 @@ void App::setup() {
     c->transform.position = glm::vec3(0, 0, -3);
 
     std::shared_ptr<Light> l = this->rm.lights.create("light");
-    l->position = glm::vec3(0, 2, -3);
-    l->ambient = glm::vec3(0.5f);
-    l->diffuse = glm::vec3(1.0f);
-    l->specular = glm::vec3(1.0f);
+    l->position  = glm::vec3(0.0f, 1.0f, -3.0f);  // closer, less height
+    l->ambient  = glm::vec3(0.15f);  // nearly zero
+    l->diffuse  = glm::vec3(3.0f);
+    l->specular  = glm::vec3(1.0f);  // slight red tint on highlights
+    l->constant  = 1.0f;
+    l->linear    = 0.0;
+    l->quadratic = 0.0;
 
     this->cam = new Camera(45.0f, (float)this->width/(float)this->height, 0.1f, 100.0f);
     cam->position = {0.0f, 0.0f, 1.0f};
@@ -100,9 +103,12 @@ void App::setup() {
 
     PostProcessPass scanline;
     scanline.shader = scanlineShader;
-    scanline.uniforms["DARKNESS"] = 1.0f;
-    scanline.uniforms["THICKNESS"] = 2.0f;
-    scanline.uniforms["BRIGHTBOOST"] = 1.1f;
+    scanline.uniforms["uScanlineThickness"] = 2.0f;
+    scanline.uniforms["uScanlineDarkness"]  = 0.6f;
+    scanline.uniforms["uPhosphorStrength"]  = 1.5f;
+    scanline.uniforms["uGlowStrength"]      = 0.3f;
+    scanline.uniforms["uVignetteStrength"]  = 0.35f;
+    scanline.uniforms["uBrightBoost"]       = 1.15f;
 
     std::shared_ptr<Renderer> r = this->rm.renderers.create("main");
     r->init(this->width, this->height);

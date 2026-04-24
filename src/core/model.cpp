@@ -29,6 +29,6 @@ void Model::updateModelMatrix() {
 void Model::draw() {
     this->shader->bind();
     this->shader->setUniformMat4("model", this->model);
-    
+
     this->mesh->draw();
 }

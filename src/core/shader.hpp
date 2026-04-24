@@ -16,6 +16,7 @@ public:
 
     void bind() const;    
     void setUniformMat4(const std::string& key, glm::mat4 matrix) const;
+    void setUniformMat3(const std::string& key, glm::mat3 matrix) const;
     void setUniformVec4(const std::string& key, glm::vec4 vector) const;
     void setUniformVec3(const std::string& key, glm::vec3 vector) const;
     void setUniformVec2(const std::string& key, glm::vec2 vector) const;
