@@ -28,7 +28,9 @@ Shader::~Shader() {
     glDeleteProgram(this->pId);
 }
 
-void Shader::bind() const { glUseProgram(this->pId); }
+void Shader::bind() const {
+    glUseProgram(this->pId);
+}
 
 void Shader::setUniformMat4(const std::string& key, glm::mat4 matrix) const {
     int uni = this->findUniform(key);
@@ -78,7 +80,13 @@ int Shader::findUniform(const std::string& key) const {
         return uni;
     }
 }
+
 unsigned int Shader::compileShader(unsigned int shaderType, const char* const* src) {
+    if (!src || !*src || strlen(*src) == 0) {
+        std::cout << "Empty shader source, aborting compile\n";
+        return 0;
+    }
+
     unsigned int shader = glCreateShader(shaderType);
     glShaderSource(shader, 1, src, nullptr);
     glCompileShader(shader);

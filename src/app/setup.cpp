@@ -68,6 +68,7 @@ void App::setup() {
     std::shared_ptr<Shader> baseShader = this->rm.shaders.create("base", "base.vert", "base.frag");
     std::shared_ptr<Shader> scanlineShader = this->rm.shaders.create("scanline", "blit.vert", "scanline.frag");
     std::shared_ptr<Shader> outlineShader = this->rm.shaders.create("outline", "blit.vert", "outline.frag");
+    std::shared_ptr<Shader> pixelatedShader = this->rm.shaders.create("pixelated", "blit.vert", "pixelated.frag");
 
     std::shared_ptr<Texture> tex = this->rm.textures.create("container", assetDir + "textures\\container.png");
     std::shared_ptr<Texture> texSpec = this->rm.textures.create("container_spec", assetDir + "textures\\container.spec.png");
@@ -110,9 +111,14 @@ void App::setup() {
     scanline.uniforms["uVignetteStrength"]  = 0.35f;
     scanline.uniforms["uBrightBoost"]       = 1.15f;
 
+    PostProcessPass pixelated;
+    pixelated.shader = pixelatedShader;
+    pixelated.uniforms["uPixelSize"] = 4.0f;
+
     std::shared_ptr<Renderer> r = this->rm.renderers.create("main");
     r->init(this->width, this->height);
     r->addPass(scanline);
     r->addPass(outline);
+    r->addPass(pixelated);
 }
  

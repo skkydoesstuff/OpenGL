@@ -5,7 +5,6 @@
 #include "core/mesh.hpp"
 #include "core/postprocess_pass.hpp"
 
-
 class Renderer {
 public:
     void init(int width, int height);

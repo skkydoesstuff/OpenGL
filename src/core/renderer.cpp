@@ -164,12 +164,11 @@ void Renderer::beginScene() {
 void Renderer::endScene() {
     glDisable(GL_DEPTH_TEST);
 
-    // sources to ping-pong between
     unsigned int fbos[2]  = { pingFBO,  pongFBO  };
     unsigned int texs[2]  = { pingTex,  pongTex  };
 
     unsigned int inputTex = this->colorTex;
-    int target = 0;  // index into fbos/texs
+    int target = 0;
 
     for (size_t i = 0; i < passes.size(); i++) {
         auto& pass = passes[i];
@@ -197,8 +196,8 @@ void Renderer::endScene() {
         for (auto& [name, value] : pass.uniforms) {
             std::visit([&](auto&& v) {
                 using T = std::decay_t<decltype(v)>;
-                if constexpr (std::is_same_v<T, int>)        pass.shader->setUniformInt(name, v);
-                else if constexpr (std::is_same_v<T, float>) pass.shader->setUniformFloat(name, v);
+                if constexpr (std::is_same_v<T, int>)            pass.shader->setUniformInt(name, v);
+                else if constexpr (std::is_same_v<T, float>)     pass.shader->setUniformFloat(name, v);
                 else if constexpr (std::is_same_v<T, glm::vec2>) pass.shader->setUniformVec2(name, v);
                 else if constexpr (std::is_same_v<T, glm::vec3>) pass.shader->setUniformVec3(name, v);
                 else if constexpr (std::is_same_v<T, glm::vec4>) pass.shader->setUniformVec4(name, v);
@@ -209,16 +208,15 @@ void Renderer::endScene() {
         renderFullscreenQuad();
 
         inputTex = texs[target];
-        target   = 1 - target;   // flip 0→1→0
+        target   = 1 - target;
     }
 
-    // ── final blit to screen ─────────────────────────────────────────────────
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
     glViewport(0, 0, width, height);
     glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT);
 
-    blitShader->bind();                          // a dead-simple passthrough shader
+    blitShader->bind();
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, inputTex);
     blitShader->setUniformInt("uTexture", 0);

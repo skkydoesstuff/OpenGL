@@ -4,6 +4,7 @@
 #include <string>
 #include <fstream>
 #include <sstream>
+#include <iostream>
 
 std::string getExecutableDirectory() {
     char buffer[MAX_PATH];
@@ -17,8 +18,11 @@ std::string getExecutableDirectory() {
 
 std::string readFile(const std::string& path) {
     std::ifstream t(path);
+    if (!t.is_open()) {
+        std::cout << "Failed to open file: " << path << "\n";
+        return "";
+    }
     std::stringstream buffer;
     buffer << t.rdbuf();
-
     return buffer.str();
 }

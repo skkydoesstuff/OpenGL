@@ -2,7 +2,7 @@ CXX      := g++
 CC       := gcc
 TARGET   := build\app.exe
 
-CXXFLAGS := -O0 -g -Wall -Wextra -std=c++17
+CXXFLAGS := -O0 -g -Wall -Wextra -std=c++20
 CFLAGS   := -O0 -g
 
 BUILD_DIR := build
@@ -103,7 +103,7 @@ copy_assets:
 all: copy_assets $(TARGET)
 
 $(TARGET): $(OBJ)
-	$(CXX) $(CXXFLAGS) $^ -o $@ $(LIBS)
+	$(CXX) $(CXXFLAGS) $(LDFLAGS) $^ -o $@ $(LIBS)
 
 # -------------------------
 # APP RULES
