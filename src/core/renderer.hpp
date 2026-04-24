@@ -27,6 +27,8 @@ private:
     unsigned int pingFBO, pongFBO;
     unsigned int pingTex, pongTex;
 
+    Shader* blitShader;
+
     std::vector<PostProcessPass> passes;
 
     int width, height;

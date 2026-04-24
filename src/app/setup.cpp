@@ -93,9 +93,10 @@ void App::setup() {
     
     PostProcessPass outline;
     outline.shader = outlineShader;
-    outline.uniforms["uOutputSize"] = glm::vec2(this->width, this->height);
     outline.uniforms["uNormalThreshold"] = 0.20f;
     outline.uniforms["uEdgeStrength"] = 1.5f;
+    outline.uniforms["uDepthThreshold"] = 0.01f;
+    outline.uniforms["uEdgeWidth"] = 2.0f;
 
     PostProcessPass scanline;
     scanline.shader = scanlineShader;
@@ -105,7 +106,7 @@ void App::setup() {
 
     std::shared_ptr<Renderer> r = this->rm.renderers.create("main");
     r->init(this->width, this->height);
-    //r->addPass(scanline);
+    r->addPass(scanline);
     r->addPass(outline);
 }
  

@@ -26,26 +26,23 @@ in vec2 texCoord;
 layout(location = 0) out vec4 gColor;
 layout(location = 1) out vec4 gNormal;
 
-void main() { 
-    vec3 norm = normalize(normal);
-    vec3 lightDir = normalize(light.position - fragPos);
+void main() {
+    vec3 N = normalize(normal);   // world-space unit normal
 
-    float diff = max(dot(norm, lightDir), 0.0);
+    // lighting (unchanged — just use N instead of norm)
+    vec3 lightDir    = normalize(light.position - fragPos);
+    float diff       = max(dot(N, lightDir), 0.0);
+    vec3 viewDir     = normalize(viewPos - fragPos);
+    vec3 halfwayDir  = normalize(lightDir + viewDir);
+    float spec       = pow(max(dot(N, halfwayDir), 0.0), material.shininess);
 
-    vec3 viewDir = normalize(viewPos - fragPos);
-    vec3 halfwayDir = normalize(lightDir + viewDir);
-    float spec = pow(max(dot(norm, halfwayDir), 0.0), material.shininess);
-
-    vec3 diffuseTex  = texture(material.diffuse, texCoord).rgb;
+    vec3 diffuseTex  = texture(material.diffuse,  texCoord).rgb;
     vec3 specularTex = texture(material.specular, texCoord).rgb;
 
-    vec3 ambient  = light.ambient * diffuseTex;
-    vec3 diffuse  = light.diffuse * diff * diffuseTex;
-    vec3 specular = light.specular * spec * specularTex;
+    vec3 result = light.ambient  *        diffuseTex
+                + light.diffuse  * diff * diffuseTex
+                + light.specular * spec * specularTex;
 
-    vec3 result = ambient + diffuse + specular;
-    gColor = vec4(result, 1.0);
-
-    vec3 n = normalize(normal);
-    gNormal = vec4(n * 0.5 + 0.5, 1.0);
+    gColor  = vec4(result, 1.0);
+    gNormal = vec4(N * 0.5 + 0.5, 1.0);   // world-space, encoded to [0,1]
 }

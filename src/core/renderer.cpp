@@ -3,6 +3,7 @@
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 
+#include "core/shader.hpp"
 #include "postprocess_pass.hpp"
 #include "utils/fileUtils.hpp"
 
@@ -13,6 +14,7 @@
 
 Renderer::~Renderer() {
     delete this->fullscreenQuadMesh;
+    delete this->blitShader;
 }
 
 void Renderer::initFullscreenQuad() {
@@ -144,6 +146,8 @@ void Renderer::init(int width, int height) {
 
     initFullscreenQuad();
 
+    blitShader = new Shader("blit.vert", "blit.frag");
+
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
@@ -160,26 +164,26 @@ void Renderer::beginScene() {
 void Renderer::endScene() {
     glDisable(GL_DEPTH_TEST);
 
+    // sources to ping-pong between
+    unsigned int fbos[2]  = { pingFBO,  pongFBO  };
+    unsigned int texs[2]  = { pingTex,  pongTex  };
+
     unsigned int inputTex = this->colorTex;
-    bool horizontal = true;
+    int target = 0;  // index into fbos/texs
 
     for (size_t i = 0; i < passes.size(); i++) {
         auto& pass = passes[i];
 
-        unsigned int targetFBO = horizontal ? pingFBO : pongFBO;
-        unsigned int outputTex = horizontal ? pingTex : pongTex;
-
-        glBindFramebuffer(GL_FRAMEBUFFER, targetFBO);
+        glBindFramebuffer(GL_FRAMEBUFFER, fbos[target]);
+        glViewport(0, 0, width, height);
         glClear(GL_COLOR_BUFFER_BIT);
 
         pass.shader->bind();
 
-        // bind input texture
         glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_2D, inputTex);
         pass.shader->setUniformInt("uTexture", 0);
-        
-        // bind depth texture
+
         glActiveTexture(GL_TEXTURE1);
         glBindTexture(GL_TEXTURE_2D, depthTex);
         pass.shader->setUniformInt("uDepth", 1);
@@ -188,42 +192,37 @@ void Renderer::endScene() {
         glBindTexture(GL_TEXTURE_2D, normalTex);
         pass.shader->setUniformInt("uNormal", 2);
 
-        // common uniforms
         pass.shader->setUniformVec2("uOutputSize", glm::vec2(width, height));
-        pass.shader->setUniformMat4("MVPMatrix", glm::mat4(1.0f));
 
-        // dynamic uniforms
         for (auto& [name, value] : pass.uniforms) {
             std::visit([&](auto&& v) {
                 using T = std::decay_t<decltype(v)>;
-
-                if constexpr (std::is_same_v<T, int>)
-                    pass.shader->setUniformInt(name, v);
-                else if constexpr (std::is_same_v<T, float>)
-                    pass.shader->setUniformFloat(name, v);
-                else if constexpr (std::is_same_v<T, glm::vec2>)
-                    pass.shader->setUniformVec2(name, v);
-                else if constexpr (std::is_same_v<T, glm::vec3>)
-                    pass.shader->setUniformVec3(name, v);
-                else if constexpr (std::is_same_v<T, glm::vec4>)
-                    pass.shader->setUniformVec4(name, v);
-                else if constexpr (std::is_same_v<T, glm::mat4>)
-                    pass.shader->setUniformMat4(name, v);
+                if constexpr (std::is_same_v<T, int>)        pass.shader->setUniformInt(name, v);
+                else if constexpr (std::is_same_v<T, float>) pass.shader->setUniformFloat(name, v);
+                else if constexpr (std::is_same_v<T, glm::vec2>) pass.shader->setUniformVec2(name, v);
+                else if constexpr (std::is_same_v<T, glm::vec3>) pass.shader->setUniformVec3(name, v);
+                else if constexpr (std::is_same_v<T, glm::vec4>) pass.shader->setUniformVec4(name, v);
+                else if constexpr (std::is_same_v<T, glm::mat4>) pass.shader->setUniformMat4(name, v);
             }, value);
         }
-        
+
         renderFullscreenQuad();
 
-        inputTex = outputTex;
-        horizontal = !horizontal;
+        inputTex = texs[target];
+        target   = 1 - target;   // flip 0→1→0
     }
 
-    // final pass to screen
+    // ── final blit to screen ─────────────────────────────────────────────────
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    glViewport(0, 0, width, height);
     glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT);
 
+    blitShader->bind();                          // a dead-simple passthrough shader
+    glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, inputTex);
+    blitShader->setUniformInt("uTexture", 0);
+
     renderFullscreenQuad();
 
     glEnable(GL_DEPTH_TEST);
