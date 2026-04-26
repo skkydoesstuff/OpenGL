@@ -64,6 +64,26 @@ void App::imguiRender() {
 
         ImGui::EndTabItem();
     }
+    if (ImGui::BeginTabItem("Bloom Settings")) {
+        ImGui::Checkbox("Enabled##bloom", &this->bloomOn);
+        ImGui::SliderFloat("Threshold", &this->thresholdVal, 0.0f, 32.0f);
+        ImGui::SliderInt("Blur Passes", &this->blurPasses, 1, 10);
+        ImGui::SliderFloat("Intensity", &this->intensity, 0.0f, 32.0f);
+
+        threshold.uniforms["uThreshold"] = thresholdVal;
+        threshold.saveOutputAs = "bloomThreshold";
+
+        blurH.uniforms["uHorizontal"] = 1;
+
+        blurV.uniforms["uHorizontal"] = 0;
+        blurV.saveOutputAs = "bloomBlurred";
+
+        composite.uniforms["uIntensity"] = intensity;
+        composite.extraTextures["uBloom"] = "bloomBlurred";
+        composite.extraTextures["uScene"] = "scene";
+
+        ImGui::EndTabItem();
+    }
 
 
     ImGui::EndTabBar();

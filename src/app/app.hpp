@@ -31,11 +31,20 @@ private:
     PostProcessPass scanline;
     PostProcessPass outline;
     PostProcessPass pixelated;
-    
+
+    PostProcessPass threshold;
+    PostProcessPass blurH;
+    PostProcessPass blurV;
+    PostProcessPass composite;
+
     bool scanlineOn, outlineOn, pixelatedOn;
     float scanThickness, scanDarkness, phosphorStrength, glowStrength, vignetteStrength, brightBoost;
     float normThresh, depthThresh, edgeStrength, edgeWidth;
     float pixelSize;
+
+    bool bloomOn;
+    float thresholdVal, intensity;
+    int blurPasses;
 
     void setup();
     void mainLoop();

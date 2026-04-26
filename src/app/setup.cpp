@@ -102,6 +102,7 @@ void App::setup() {
     scanlineOn = false;
     outlineOn = false;
     pixelatedOn = false;
+    bloomOn = false;
 
     this->normThresh = 0.2f;
     this->edgeStrength = 1.5f;
@@ -117,6 +118,26 @@ void App::setup() {
     
     this->pixelSize = 4.0f;
 
+    thresholdVal = 0.8f;
+    intensity = 1.2f;
+    blurPasses = 1;
+
+    threshold.shader = thresholdShader;
+    threshold.uniforms["uThreshold"] = 0.8f;
+    threshold.saveOutputAs = "bloomThreshold";
+
+    blurH.shader = blurShader;
+    blurH.uniforms["uHorizontal"] = 1;
+
+    blurV.shader = blurShader;
+    blurV.uniforms["uHorizontal"] = 0;
+    blurV.saveOutputAs = "bloomBlurred";
+
+    composite.shader = compositeShader;
+    composite.uniforms["uIntensity"] = 1.2f;
+    composite.extraTextures["uBloom"] = "bloomBlurred";
+    composite.extraTextures["uScene"] = "scene"; // original scene
+
     scanline.shader = scanlineShader;
     scanline.uniforms["uScanlineThickness"] = scanThickness;
     scanline.uniforms["uScanlineDarkness"]  = scanDarkness;
@@ -126,14 +147,14 @@ void App::setup() {
     scanline.uniforms["uBrightBoost"]       = brightBoost;
 
     outline.shader = outlineShader;
-    outline.uniforms["uNormalThreshold"] = normThresh;
-    outline.uniforms["uEdgeStrength"] = edgeStrength;
-    outline.uniforms["uDepthThreshold"] = depthThresh;
-    outline.uniforms["uEdgeWidth"] = edgeWidth;
+    outline.uniforms["uNormalThreshold"]  = normThresh;
+    outline.uniforms["uEdgeStrength"]     = edgeStrength;
+    outline.uniforms["uDepthThreshold"]   = depthThresh;
+    outline.uniforms["uEdgeWidth"]        = edgeWidth;
 
     pixelated.shader = pixelatedShader;
     pixelated.uniforms["uPixelSize"] = pixelSize;
-    
+
     std::shared_ptr<Renderer> r = this->rm.renderers.create("main");
     r->init(this->width, this->height);
 }

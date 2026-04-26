@@ -57,8 +57,4 @@ App::App() {
 
     ImGui_ImplGlfw_InitForOpenGL(window, true);
     ImGui_ImplOpenGL3_Init(glsl_version);
-
-    this->scanline.uniforms.reserve(10);
-    this->outline.uniforms.reserve(10);
-    this->pixelated.uniforms.reserve(10);
 }

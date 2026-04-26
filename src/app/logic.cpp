@@ -15,15 +15,14 @@ void App::logicLoop() {
     }
 
     r->clearPasses();
-    if (this->scanlineOn == true) {
-        scanline.uniforms["uScanlineThickness"] = scanThickness;
-        scanline.uniforms["uScanlineDarkness"]  = scanDarkness;
-        scanline.uniforms["uPhosphorStrength"]  = phosphorStrength;
-        scanline.uniforms["uGlowStrength"]      = glowStrength;
-        scanline.uniforms["uVignetteStrength"]  = vignetteStrength;
-        scanline.uniforms["uBrightBoost"]       = brightBoost;
 
-        r->addPass(scanline);
+    if (this->bloomOn == true) {
+        r->addPass(threshold);
+        for (int i = 0; i < this->blurPasses; i++) {
+            r->addPass(blurH);
+            r->addPass(blurV);
+        }
+        r->addPass(composite);
     }
 
     if (this->outlineOn == true) {
@@ -33,6 +32,17 @@ void App::logicLoop() {
         outline.uniforms["uEdgeWidth"] = edgeWidth;
 
         r->addPass(outline);
+    }
+
+    if (this->scanlineOn == true) {
+        scanline.uniforms["uScanlineThickness"] = scanThickness;
+        scanline.uniforms["uScanlineDarkness"]  = scanDarkness;
+        scanline.uniforms["uPhosphorStrength"]  = phosphorStrength;
+        scanline.uniforms["uGlowStrength"]      = glowStrength;
+        scanline.uniforms["uVignetteStrength"]  = vignetteStrength;
+        scanline.uniforms["uBrightBoost"]       = brightBoost;
+
+        r->addPass(scanline);
     }
 
     if (this->pixelatedOn == true) {

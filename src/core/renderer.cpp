@@ -60,6 +60,14 @@ static GLuint makeTexture(int width, int height, GLenum internalFmt, GLenum fmt,
     return tex;
 }
 
+static GLuint makeMSAATexture(int width, int height, GLenum internalFmt, int samples) {
+    GLuint tex;
+    glGenTextures(1, &tex);
+    glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, tex);
+    glTexImage2DMultisample(GL_TEXTURE_2D_MULTISAMPLE, samples, internalFmt, width, height, GL_TRUE);
+    return tex;
+}
+
 static GLuint makeFramebuffer(std::initializer_list<std::pair<GLenum, GLuint>> attachments) {
     GLuint fbo;
     glGenFramebuffers(1, &fbo);
@@ -69,12 +77,38 @@ static GLuint makeFramebuffer(std::initializer_list<std::pair<GLenum, GLuint>> a
     return fbo;
 }
 
+static GLuint makeMSAAFramebuffer(std::initializer_list<std::pair<GLenum, GLuint>> attachments) {
+    GLuint fbo;
+    glGenFramebuffers(1, &fbo);
+    glBindFramebuffer(GL_FRAMEBUFFER, fbo);
+    for (auto& [point, tex] : attachments)
+        glFramebufferTexture2D(GL_FRAMEBUFFER, point, GL_TEXTURE_2D_MULTISAMPLE, tex, 0);
+    return fbo;
+}
+
 void Renderer::init(int width, int height) {
     this->width  = width;
     this->height = height;
 
-    // --- G-buffer ---
-    colorTex  = makeTexture(width, height, GL_RGB16F, GL_RGB, GL_UNSIGNED_BYTE, GL_LINEAR);
+    // --- MSAA G-buffer ---
+    msaaColorTex  = makeMSAATexture(width, height, GL_RGB16F, msaaSamples);
+    msaaDepthTex  = makeMSAATexture(width, height, GL_DEPTH_COMPONENT24, msaaSamples);
+    msaaNormalTex = makeMSAATexture(width, height, GL_RGB16F, msaaSamples);
+
+    msaaFBO = makeMSAAFramebuffer({
+        { GL_COLOR_ATTACHMENT0, msaaColorTex  },
+        { GL_DEPTH_ATTACHMENT,  msaaDepthTex  },
+        { GL_COLOR_ATTACHMENT1, msaaNormalTex },
+    });
+
+    if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
+        std::cerr << "MSAA FBO incomplete\n";
+
+    const GLenum drawBuffers[] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1 };
+    glDrawBuffers(2, drawBuffers);
+
+    // --- Resolve G-buffer (regular, for post-process sampling) ---
+    colorTex  = makeTexture(width, height, GL_RGB16F, GL_RGB, GL_FLOAT, GL_LINEAR);
     depthTex  = makeTexture(width, height, GL_DEPTH_COMPONENT24, GL_DEPTH_COMPONENT, GL_FLOAT, GL_NEAREST, GL_CLAMP_TO_EDGE);
     normalTex = makeTexture(width, height, GL_RGB16F, GL_RGB, GL_FLOAT, GL_NEAREST, GL_CLAMP_TO_EDGE);
 
@@ -85,14 +119,13 @@ void Renderer::init(int width, int height) {
     });
 
     if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
-        std::cerr << "G-buffer FBO incomplete\n";
+        std::cerr << "Resolve FBO incomplete\n";
 
-    const GLenum drawBuffers[] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1 };
     glDrawBuffers(2, drawBuffers);
 
     // --- Ping-pong buffers ---
-    pingTex = makeTexture(width, height, GL_RGB16F, GL_RGB, GL_UNSIGNED_BYTE, GL_LINEAR);
-    pongTex = makeTexture(width, height, GL_RGB16F, GL_RGB, GL_UNSIGNED_BYTE, GL_LINEAR);
+    pingTex = makeTexture(width, height, GL_RGB16F, GL_RGB, GL_FLOAT, GL_LINEAR);
+    pongTex = makeTexture(width, height, GL_RGB16F, GL_RGB, GL_FLOAT, GL_LINEAR);
 
     pingFBO = makeFramebuffer({ { GL_COLOR_ATTACHMENT0, pingTex } });
     pongFBO = makeFramebuffer({ { GL_COLOR_ATTACHMENT0, pongTex } });
@@ -104,7 +137,7 @@ void Renderer::init(int width, int height) {
 }
 
 void Renderer::beginScene() {
-    glBindFramebuffer(GL_FRAMEBUFFER, FBO);
+    glBindFramebuffer(GL_FRAMEBUFFER, msaaFBO);
     glViewport(0, 0, width, height);
 
     glEnable(GL_DEPTH_TEST);
@@ -114,53 +147,70 @@ void Renderer::beginScene() {
 }
 
 void Renderer::endScene() {
+    // --- Resolve MSAA into regular FBO ---
+    glBindFramebuffer(GL_READ_FRAMEBUFFER, msaaFBO);
+    glBindFramebuffer(GL_DRAW_FRAMEBUFFER, FBO);
+
+    glReadBuffer(GL_COLOR_ATTACHMENT0);
+    glDrawBuffer(GL_COLOR_ATTACHMENT0);
+    glBlitFramebuffer(0, 0, width, height, 0, 0, width, height, GL_COLOR_BUFFER_BIT, GL_LINEAR);
+
+    glReadBuffer(GL_COLOR_ATTACHMENT1);
+    glDrawBuffer(GL_COLOR_ATTACHMENT1);
+    glBlitFramebuffer(0, 0, width, height, 0, 0, width, height, GL_COLOR_BUFFER_BIT, GL_NEAREST);
+
+    glBlitFramebuffer(0, 0, width, height, 0, 0, width, height, GL_DEPTH_BUFFER_BIT, GL_NEAREST);
+
+    // --- Post-process chain ---
     glDisable(GL_DEPTH_TEST);
 
-    unsigned int fbos[2]  = { pingFBO,  pongFBO  };
-    unsigned int texs[2]  = { pingTex,  pongTex  };
-
-    unsigned int inputTex = this->colorTex;
+    struct PingPong {
+        GLuint fbo, tex;
+    } buffers[2] = { {pingFBO, pingTex}, {pongFBO, pongTex} };
     int target = 0;
 
-    for (size_t i = 0; i < passes.size(); i++) {
-        auto& pass = passes[i];
+    unsigned int inputTex = this->colorTex;
 
-        glBindFramebuffer(GL_FRAMEBUFFER, fbos[target]);
+    auto bindTex = [](int slot, GLuint tex) {
+        glActiveTexture(GL_TEXTURE0 + slot);
+        glBindTexture(GL_TEXTURE_2D, tex);
+    };
+
+    std::unordered_map<std::string, GLuint> snapshots;
+
+    snapshots["scene"] = this->colorTex;
+
+    for (auto& pass : passes) {
+        glBindFramebuffer(GL_FRAMEBUFFER, buffers[target].fbo);
         glViewport(0, 0, width, height);
         glClear(GL_COLOR_BUFFER_BIT);
 
         pass.shader->bind();
-
-        glActiveTexture(GL_TEXTURE0);
-        glBindTexture(GL_TEXTURE_2D, inputTex);
-        pass.shader->setUniformInt("uTexture", 0);
-
-        glActiveTexture(GL_TEXTURE1);
-        glBindTexture(GL_TEXTURE_2D, depthTex);
-        pass.shader->setUniformInt("uDepth", 1);
-
-        glActiveTexture(GL_TEXTURE2);
-        glBindTexture(GL_TEXTURE_2D, normalTex);
-        pass.shader->setUniformInt("uNormal", 2);
-
+        bindTex(0, inputTex);  pass.shader->setUniformInt("uTexture", 0);
+        bindTex(1, depthTex);  pass.shader->setUniformInt("uDepth",   1);
+        bindTex(2, normalTex); pass.shader->setUniformInt("uNormal",  2);
         pass.shader->setUniformVec2("uOutputSize", glm::vec2(width, height));
+        pass.applyUniforms();
 
-        for (auto& [name, value] : pass.uniforms) {
-            std::visit([&](auto&& v) {
-                using T = std::decay_t<decltype(v)>;
-                if constexpr (std::is_same_v<T, int>)            pass.shader->setUniformInt(name, v);
-                else if constexpr (std::is_same_v<T, float>)     pass.shader->setUniformFloat(name, v);
-                else if constexpr (std::is_same_v<T, glm::vec2>) pass.shader->setUniformVec2(name, v);
-                else if constexpr (std::is_same_v<T, glm::vec3>) pass.shader->setUniformVec3(name, v);
-                else if constexpr (std::is_same_v<T, glm::vec4>) pass.shader->setUniformVec4(name, v);
-                else if constexpr (std::is_same_v<T, glm::mat4>) pass.shader->setUniformMat4(name, v);
-            }, value);
+        int slot = 3;
+        for (auto& [uniformName, snapshotName] : pass.extraTextures) {
+            if (snapshots.count(snapshotName)) {
+                bindTex(slot, snapshots[snapshotName]);
+                pass.shader->setUniformInt(uniformName, slot);
+                slot++;
+            } else {
+                std::cout << "MISSING snapshot: " << snapshotName << "\n";
+            }
         }
 
         renderFullscreenQuad();
 
-        inputTex = texs[target];
-        target   = 1 - target;
+        inputTex = buffers[target].tex;
+        target ^= 1;
+
+        if (!pass.saveOutputAs.empty()) {
+            snapshots[pass.saveOutputAs] = inputTex;
+        }
     }
 
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
@@ -182,23 +232,30 @@ void Renderer::setDimensions(int width, int height) {
     this->width = width;
     this->height = height;
 
-    // --- resize color ---
+    // --- resize MSAA ---
+    glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, msaaColorTex);
+    glTexImage2DMultisample(GL_TEXTURE_2D_MULTISAMPLE, msaaSamples, GL_RGB16F, width, height, GL_TRUE);
+
+    glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, msaaDepthTex);
+    glTexImage2DMultisample(GL_TEXTURE_2D_MULTISAMPLE, msaaSamples, GL_DEPTH_COMPONENT24, width, height, GL_TRUE);
+
+    glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, msaaNormalTex);
+    glTexImage2DMultisample(GL_TEXTURE_2D_MULTISAMPLE, msaaSamples, GL_RGB16F, width, height, GL_TRUE);
+
+    // --- resize resolve ---
     glBindTexture(GL_TEXTURE_2D, colorTex);
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB16F, width, height, 0, GL_RGB, GL_FLOAT, nullptr);
 
-    // --- resize depth ---
     glBindTexture(GL_TEXTURE_2D, depthTex);
     glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT24, width, height, 0, GL_DEPTH_COMPONENT, GL_FLOAT, nullptr);
 
-    // --- resize normal ---
     glBindTexture(GL_TEXTURE_2D, normalTex);
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB16F, width, height, 0, GL_RGB, GL_FLOAT, nullptr);
 
-    // --- resize ping ---
+    // --- resize ping-pong ---
     glBindTexture(GL_TEXTURE_2D, pingTex);
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB16F, width, height, 0, GL_RGB, GL_FLOAT, nullptr);
 
-    // --- resize pong ---
     glBindTexture(GL_TEXTURE_2D, pongTex);
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB16F, width, height, 0, GL_RGB, GL_FLOAT, nullptr);
 
