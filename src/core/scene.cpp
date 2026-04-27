@@ -74,18 +74,22 @@ Light* Scene::createLight(const std::string& tag) {
     return ptr;
 }
 
-Camera* Scene::createCamera(const std::string& tag,
-                            float fovInRadians,
+Camera* Scene::createCamera(float fovInRadians,
                             float aspectRatio,
                             float zNear,
                             float zFar) {
 
+    /*
     std::unique_ptr<Camera> camera = std::make_unique<Camera>(fovInRadians, aspectRatio, zNear, zFar);
     Camera* ptr = camera.get();
 
     cameras[tag] = std::move(camera);
 
     return ptr;
+    */
+
+    this->cam = new Camera(fovInRadians, aspectRatio, zNear, zFar);
+    return this->cam;
 }
 
 Renderer* Scene::createRenderer(const std::string& tag) {
@@ -130,12 +134,15 @@ Light* Scene::getLight(const std::string& tag) {
     return it->second.get();
 }
 
-Camera* Scene::getCamera(const std::string& tag) {
+Camera* Scene::getCamera() {
+    /*
     auto it = this->cameras.find(tag);
     if (it == this->cameras.end())
         return nullptr;
 
     return it->second.get();
+    */
+    return this->cam;
 }
 
 Renderer* Scene::getRenderer(const std::string& tag) {
@@ -144,4 +151,42 @@ Renderer* Scene::getRenderer(const std::string& tag) {
         return nullptr;
 
     return it->second.get();
+}
+
+int Scene::getLightCount() {
+    return this->lights.size();
+}
+
+void Scene::uploadLightData(const std::string& shaderTag) {
+    std::shared_ptr<Shader> shader = this->getShader(shaderTag);
+    shader->bind();
+    int i = 0;
+
+    for (auto& [key, light] : this->lights) {
+        light->upload(*shader, i);
+        i++;
+    }
+
+    shader->setUniformInt("uNumLights", this->lights.size());
+}
+
+void Scene::uploadCameraData(const std::string& shaderTag) {
+    std::shared_ptr<Shader> shader = this->getShader(shaderTag);
+    glm::mat4 view = this->cam->getView();
+    glm::mat4 proj = this->cam->getProjection();
+
+    shader->bind();
+    shader->setUniformMat4("view", view);
+    shader->setUniformMat4("projection", proj);
+    shader->setUniformVec3("viewPos", cam->position);
+}
+
+void Scene::drawScene(const std::string& shaderTag) { 
+    this->uploadCameraData(shaderTag);
+    this->uploadLightData(shaderTag);
+
+    for (auto& [key, model] : this->models) {
+        model->updateModelMatrix();
+        model->draw();
+    }
 }

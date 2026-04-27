@@ -20,7 +20,9 @@ void RenderTarget::build() {
     glGenFramebuffers(1, &fbo);
     glBindFramebuffer(GL_FRAMEBUFFER, fbo);
 
+    std::vector<GLenum> drawBuffers;
     for (auto& c : colors) {
+        drawBuffers.push_back(c.attachment);
         glGenTextures(1, &c.tex);
 
         if (samples > 0) {
@@ -61,16 +63,23 @@ void RenderTarget::build() {
         } else {
             glBindTexture(GL_TEXTURE_2D, depthTex);
             glTexImage2D(GL_TEXTURE_2D, 0,
-                         depthDesc.internalFormat,
-                         width, height, 0,
-                         depthDesc.format, depthDesc.type,
-                         nullptr);
+                GL_DEPTH_COMPONENT32F,
+                width, height, 0,
+                GL_DEPTH_COMPONENT,
+                GL_FLOAT,
+                nullptr);
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
             glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT,
                                    GL_TEXTURE_2D, depthTex, 0);
         }
     }
+
+    
+    if (!drawBuffers.empty())
+        glDrawBuffers(drawBuffers.size(), drawBuffers.data());
 
     GLenum status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
     if (status != GL_FRAMEBUFFER_COMPLETE)

@@ -44,8 +44,7 @@ public:
 
     Light* createLight(const std::string& tag);
 
-    Camera* createCamera(const std::string& tag,
-                         float fovInRadians,
+    Camera* createCamera(float fovInRadians,
                          float aspectRatio,
                          float zNear,
                          float zFar);
@@ -59,8 +58,14 @@ public:
 
     Model* getModel(const std::string& tag);
     Light* getLight(const std::string& tag);
-    Camera* getCamera(const std::string& tag);
+    Camera* getCamera();
     Renderer* getRenderer(const std::string& tag);
+
+    int getLightCount();
+    void uploadCameraData(const std::string& shaderTag);
+    void uploadLightData(const std::string& shaderTag);
+
+    void drawScene(const std::string& shaderTag);
 
     ~Scene() = default;
     Scene(const Scene&) = delete;
@@ -69,6 +74,8 @@ private:
     std::unique_ptr<ResourceManager> rm;
     std::unordered_map<std::string, std::unique_ptr<Model>> models;
     std::unordered_map<std::string, std::unique_ptr<Light>> lights;
-    std::unordered_map<std::string, std::unique_ptr<Camera>> cameras;
+    //std::unordered_map<std::string, std::unique_ptr<Camera>> cameras;
     std::unordered_map<std::string, std::unique_ptr<Renderer>> renderers;
+
+    Camera* cam;
 };

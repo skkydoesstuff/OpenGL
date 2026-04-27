@@ -6,6 +6,22 @@
 
 class Renderer {
 public:
+    struct AttachmentDesc {
+        int        count;
+        TextureDesc format = {GL_RGB16F, GL_RGB, GL_FLOAT};
+    };
+    struct RTDesc {
+        AttachmentDesc color;
+        TextureDesc    depth;
+        bool           hasDepth = false;
+        bool           msaa     = false;
+    };
+
+    void registerRT(const std::string& name, RTDesc desc);
+    RenderTarget& getRT(const std::string& name);
+
+    void bindTex(int slot, GLuint tex);
+
     void init(int width, int height);
     void beginScene();
     void endScene();
@@ -21,10 +37,8 @@ private:
 
     Shader* blitShader;
 
-    RenderTarget msaa;
-    RenderTarget scene;
-    RenderTarget ping;
-    RenderTarget pong;
+    std::unordered_map<std::string, RTDesc>        rtDescs;
+    std::unordered_map<std::string, RenderTarget>  rts;
 
     std::vector<std::shared_ptr<PostProcessPass>> passes;
 

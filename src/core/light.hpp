@@ -16,11 +16,5 @@ public:
     float linear;
     float quadratic;
 
-    void upload(const Shader& s);
-    
-    static void reset() { lightCount = 0; }
-
-private:
-    bool firstCall = true;
-    static int lightCount;
+    void upload(const Shader& s, int index);
 };

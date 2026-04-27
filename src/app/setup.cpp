@@ -94,7 +94,7 @@ void App::setup() {
     l->linear    = 0.0;
     l->quadratic = 0.0;
 
-    auto cam = scene.createCamera("main", 45.0f, (float)this->width/(float)this->height, 0.1f, 100.0f);
+    auto cam = scene.createCamera(45.0f, (float)this->width/(float)this->height, 0.1f, 100.0f);
     cam->position = {0.0f, 0.0f, 1.0f};
     cam->rotation = {0.0f, -90.0f, 0.0f};
 
@@ -139,6 +139,8 @@ void App::setup() {
             {"uEdgeStrength", this->settings.edgeStrength},
             {"uDepthThreshold", this->settings.depthThresh},
             {"uEdgeWidth", this->settings.edgeWidth},
+            {"uNear", 0.1f},
+            {"uFar", 100.0f},
         }
     );
 

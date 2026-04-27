@@ -37,8 +37,8 @@ void App::imguiRender() {
     if (ImGui::BeginTabItem("Outline Settings")) {
         ImGui::Checkbox("Enabled##outline", &this->settings.outlineOn);
         ImGui::SliderFloat("Normal Threshold", &this->settings.normThresh,    0.0f, 1.0f);
-        ImGui::SliderFloat("Depth Threshold",  &this->settings.depthThresh,   0.0f, 1.0f);
-        ImGui::SliderFloat("Edge Strength",    &this->settings.edgeStrength,  0.0f, 10.0f);
+        ImGui::SliderFloat("Depth Threshold",  &this->settings.depthThresh,   0.0f, .1f);
+        ImGui::SliderFloat("Edge Strength",    &this->settings.edgeStrength,  0.0f, 1.0f);
         ImGui::SliderFloat("Edge Width",       &this->settings.edgeWidth,     0.1f, 5.0f);
 
         ImGui::EndTabItem();
@@ -49,7 +49,6 @@ void App::imguiRender() {
 
         ImGui::EndTabItem();
     }
-
 
     ImGui::EndTabBar();
     ImGui::End();
