@@ -13,7 +13,7 @@ void App::imguiRender() {
     ImGui_ImplGlfw_NewFrame();
     ImGui::NewFrame();
 
-    std::shared_ptr<Model> model = this->rm.models.get("cube");
+    Model* model = scene.getModel("cube");
 
     ImGui::Begin("Info");
     ImGui::Text("%.1f FPS", this->io.Framerate);

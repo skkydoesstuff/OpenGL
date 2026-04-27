@@ -1,7 +1,6 @@
 #include <imgui.h>
 
-#include "core/resourceManager.hpp"
-#include "core/camera.hpp"
+#include "core/scene.hpp"
 
 #include <cstdint>
 
@@ -31,9 +30,7 @@ private:
     GLFWwindow* window;
     ImGuiIO io;
 
-    ResourceManager rm;
-    Camera* cam;
-
+    Scene scene;
     ShaderSettings settings;
 
     void setup();

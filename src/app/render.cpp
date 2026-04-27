@@ -11,25 +11,25 @@
 #include "core/shader.hpp"
 
 void App::render() {
-    std::shared_ptr<Model> model = this->rm.models.get("cube");
-    std::shared_ptr<Shader> shader = this->rm.shaders.get("base");
-    
-    std::shared_ptr<Renderer> r = this->rm.renderers.get("main");
+    Model* model = scene.getModel("cube");
+    std::shared_ptr<Shader> shader = scene.getShader("base");
+
+    Renderer* r = scene.getRenderer("main");
+    Camera* cam = scene.getCamera("main");
 
     model->updateModelMatrix();
 
-    glm::mat4 view = this->cam->getView();
-    glm::mat4 proj = this->cam->getProjection();
+    glm::mat4 view = cam->getView();
+    glm::mat4 proj = cam->getProjection();
 
     r->beginScene();
     
     shader->bind();
-    shader->setUniformMat4("view", view);       
+    shader->setUniformMat4("view", view);
     shader->setUniformMat4("projection", proj);
     shader->setUniformVec3("viewPos", cam->position);
 
-    this->rm.lights.get("light")->upload(*shader);
-    this->rm.materials.get("container")->bind(*shader);
+    scene.getLight("light")->upload(*shader);
 
     model->draw();
     

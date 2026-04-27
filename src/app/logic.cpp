@@ -4,7 +4,7 @@
 #include <GLFW/glfw3.h>
 
 void App::logicLoop() {
-    std::shared_ptr<Renderer> r = this->rm.renderers.get("main");
+    Renderer* r = scene.getRenderer("main");
 
     int fbWidth, fbHeight;
     glfwGetFramebufferSize(window, &fbWidth, &fbHeight);
@@ -17,10 +17,10 @@ void App::logicLoop() {
     r->clearPasses();
 
     if (this->settings.bloomOn == true) {
-        auto threshold = this->rm.passes.get("threshold");        
-        auto blurH = this->rm.passes.get("blurH");        
-        auto blurV = this->rm.passes.get("blurV");        
-        auto composite = this->rm.passes.get("composite");        
+        auto threshold = scene.getPass("threshold");        
+        auto blurH = scene.getPass("blurH");        
+        auto blurV = scene.getPass("blurV");        
+        auto composite = scene.getPass("composite");        
 
         threshold->uniforms["uThreshold"] = this->settings.thresholdVal;
         threshold->saveOutputAs = "bloomThreshold";
@@ -35,7 +35,7 @@ void App::logicLoop() {
     }
 
     if (this->settings.outlineOn == true) {
-        auto outline = this->rm.passes.get("outline");
+        auto outline = scene.getPass("outline");
 
         outline->uniforms["uNormalThreshold"] = this->settings.normThresh;
         outline->uniforms["uEdgeStrength"]    = this->settings.edgeStrength;
@@ -46,7 +46,7 @@ void App::logicLoop() {
     }
 
     if (this->settings.scanlineOn == true) {
-        auto scanline = this->rm.passes.get("scanline");
+        auto scanline = scene.getPass("scanline");
 
         scanline->uniforms["uScanlineThickness"] = this->settings.scanThickness;
         scanline->uniforms["uScanlineDarkness"]  = this->settings.scanDarkness;
@@ -59,7 +59,7 @@ void App::logicLoop() {
     }
 
     if (this->settings.pixelatedOn == true) {
-        auto pixelated = this->rm.passes.get("pixelated");
+        auto pixelated = scene.getPass("pixelated");
 
         pixelated->uniforms["uPixelSize"] = this->settings.pixelSize;
         r->addPass(pixelated);

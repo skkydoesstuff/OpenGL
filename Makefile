@@ -31,6 +31,7 @@ APP_SOURCES := \
     src/core/model.cpp \
     src/core/camera.cpp \
     src/core/renderer.cpp \
+    src/core/scene.cpp \
     src/app/init.cpp \
     src/app/setup.cpp \
     src/app/run.cpp \
