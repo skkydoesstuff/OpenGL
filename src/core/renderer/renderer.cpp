@@ -3,13 +3,13 @@
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 
-#include "core/shader.hpp"
+#include "core/renderer/shader.hpp"
 
 #include "renderTarget.hpp"
 #include "utils/fileUtils.hpp"
 #include "utils/debugUtils.hpp"
 
-#include "core/mesh.hpp"
+#include "core/renderer/mesh.hpp"
 #include "core/renderer/postprocess_pass.hpp"
 
 #include <iostream>

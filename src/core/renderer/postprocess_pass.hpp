@@ -6,7 +6,7 @@
 #include <string>
 
 #include <glm/glm.hpp>
-#include "core/shader.hpp"
+#include "core/renderer/shader.hpp"
 
 using UniformValue = std::variant<
     int,

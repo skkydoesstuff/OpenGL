@@ -6,7 +6,7 @@
 #include "imgui_impl_glfw.h"
 #include "imgui_impl_opengl3.h"
 
-#include "core/model.hpp"
+#include "core/scene/model.hpp"
 
 void App::imguiRender() {
     ImGui_ImplOpenGL3_NewFrame();

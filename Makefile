@@ -23,16 +23,16 @@ SHELL := cmd.exe
 # -------------------------
 APP_SOURCES := \
     src/main.cpp \
-    src/core/shader.cpp \
-    src/core/texture.cpp \
-    src/core/material.cpp \
-    src/core/mesh.cpp \
-    src/core/light.cpp \
-    src/core/model.cpp \
-    src/core/camera.cpp \
+    src/core/scene/scene.cpp \
+    src/core/scene/light.cpp \
+    src/core/scene/model.cpp \
+    src/core/scene/camera.cpp \
+    src/core/renderer/mesh.cpp \
     src/core/renderer/renderer.cpp \
     src/core/renderer/renderTarget.cpp \
-    src/core/scene.cpp \
+    src/core/renderer/shader.cpp \
+    src/core/renderer/texture.cpp \
+    src/core/renderer/material.cpp \
     src/app/init.cpp \
     src/app/setup.cpp \
     src/app/run.cpp \
@@ -42,6 +42,7 @@ APP_SOURCES := \
     src/app/render.cpp \
     src/app/cleanup.cpp \
     src/utils/fileUtils.cpp \
+    src/utils/tiny_obj_loader.cpp \
     src/utils/stb_image.cpp 
 
 IMGUI_SOURCES := \

@@ -6,12 +6,12 @@
 #include <unordered_map>
 
 #include "core/resourceManager.hpp"
-#include "core/model.hpp"
-#include "core/light.hpp"
-#include "core/camera.hpp"
+#include "core/scene/model.hpp"
+#include "core/scene/light.hpp"
+#include "core/scene/camera.hpp"
 #include "core/renderer/renderer.hpp"
 #include "core/renderer/postprocess_pass.hpp"
-#include "material.hpp"
+#include "core/renderer/material.hpp"
 
 class Scene {
 public:
@@ -22,8 +22,9 @@ public:
                       const std::string& frag);
 
     void createMesh(const std::string& tag,
-                    const std::vector<float>& vertices,
-                    const std::vector<unsigned int> indices = {});
+                    const std::vector<float>& vertices = {},
+                    const std::vector<unsigned int> indices = {},
+                    const std::string& objFileName = "");
 
     void createTexture(const std::string& tag, const std::string& path);
 
@@ -37,7 +38,7 @@ public:
                     std::unordered_map<std::string, UniformValue> uniforms = {},
                     std::unordered_map<std::string, std::string> extraTextures = {},
                     const std::string& output = "");
-
+        
     Model* createModel(const std::string& tag,
                        const std::string& shaderTag,
                        const std::string& meshTag);

@@ -1,7 +1,10 @@
-#include "core/scene.hpp"
+#include "core/scene/scene.hpp"
 
+#include "core/renderer/mesh.hpp"
 #include "core/resourceManager.hpp"
-#include "core/model.hpp"
+#include "core/scene/model.hpp"
+
+#include "utils/fileUtils.hpp"
 
 Scene::Scene() {
     this->rm = std::make_unique<ResourceManager>();
@@ -14,14 +17,27 @@ void Scene::createShader(const std::string& tag,
     this->rm->shaders.create(tag, vert, frag);
 }
 
+/**
+* @param objFileName Leave vertices and indices blank if you are using this
+*/
 void Scene::createMesh(const std::string& tag,
                       const std::vector<float>& vertices,
-                      const std::vector<unsigned int> indices) {
+                      const std::vector<unsigned int> indices,
+                      const std::string& objFileName) {
 
-    std::shared_ptr<Mesh> m = this->rm->meshes.create(tag, vertices, 8, indices);
-    m->addVertexAttribute(0, 3, GL_FLOAT, 8 * sizeof(float), (const void*)0);
-    m->addVertexAttribute(1, 3, GL_FLOAT, 8 * sizeof(float), (const void*)(sizeof(float) * 3));
-    m->addVertexAttribute(2, 2, GL_FLOAT, 8 * sizeof(float), (const void*)(sizeof(float) * 6));
+
+    if (vertices.empty() != true) {
+        std::shared_ptr<Mesh> m = this->rm->meshes.create(tag, vertices, 8, indices);
+        m->addVertexAttribute(0, 3, GL_FLOAT, 8 * sizeof(float), (const void*)0);
+        m->addVertexAttribute(1, 3, GL_FLOAT, 8 * sizeof(float), (const void*)(sizeof(float) * 3));
+        m->addVertexAttribute(2, 2, GL_FLOAT, 8 * sizeof(float), (const void*)(sizeof(float) * 6));
+    } else if (objFileName.empty() != true) {
+        MeshStructure meshStructure = readObjFile(objFileName);
+        std::shared_ptr<Mesh> m = this->rm->meshes.create(tag, meshStructure.vertices, 8, meshStructure.indices);
+        m->addVertexAttribute(0, 3, GL_FLOAT, 8 * sizeof(float), (const void*)0);
+        m->addVertexAttribute(1, 3, GL_FLOAT, 8 * sizeof(float), (const void*)(sizeof(float) * 3));
+        m->addVertexAttribute(2, 2, GL_FLOAT, 8 * sizeof(float), (const void*)(sizeof(float) * 6));
+    }
 }
 
 void Scene::createTexture(const std::string& tag, const std::string& path) {
@@ -51,6 +67,7 @@ void Scene::createPass(const std::string& tag,
     pass->saveOutputAs = std::move(output);
 }
 
+/// test
 Model* Scene::createModel(const std::string& tag,
                           const std::string& shaderTag,
                           const std::string& meshTag) {

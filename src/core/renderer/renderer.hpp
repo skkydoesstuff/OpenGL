@@ -1,6 +1,6 @@
 #pragma once
 #include <glad/glad.h>
-#include "core/mesh.hpp"
+#include "core/renderer/mesh.hpp"
 #include "core/renderer/postprocess_pass.hpp"
 #include "core/renderer/renderTarget.hpp"
 

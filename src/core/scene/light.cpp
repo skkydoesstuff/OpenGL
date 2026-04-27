@@ -1,6 +1,6 @@
-#include "core/light.hpp"
+#include "core/scene/light.hpp"
 
-#include "core/shader.hpp"
+#include "core/renderer/shader.hpp"
 
 void Light::upload(const Shader& s, int index) {
     std::string base = "lights[" + std::to_string(index) + "].";

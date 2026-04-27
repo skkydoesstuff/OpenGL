@@ -1,9 +1,9 @@
-#include "core/material.hpp"
+#include "core/renderer/material.hpp"
 
 #include <glad/glad.h>
 
-#include "core/texture.hpp"
-#include "core/shader.hpp"
+#include "core/renderer/texture.hpp"
+#include "core/renderer/shader.hpp"
 
 void Material::bind(const Shader& shader) const {
     if (diffuse) {

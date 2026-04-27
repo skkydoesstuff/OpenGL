@@ -1,15 +1,16 @@
 #include "app/app.hpp"
 
-#include "core/camera.hpp"
-#include "core/model.hpp"
+#include "core/scene/camera.hpp"
+#include "core/scene/model.hpp"
 
 #include "utils/fileUtils.hpp"
 #include "utils/stb_image.h"
 
+
 void App::setup() {
     std::string exeDir = getExecutableDirectory();
     std::string assetDir = exeDir + "\\assets\\";
-    
+
     std::vector<float> vs = {
         // positions          // normals           // texcoords
         // Back face
@@ -55,8 +56,8 @@ void App::setup() {
         -0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,  0.0f, 1.0f,
         -0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f,  0.0f, 0.0f,
     };
-
-    scene.createMesh("cube", vs);
+    
+    scene.createMesh("cube", {}, {}, "capsule.obj");
 
     /*                                 
     ----------- SHADER SETUP -----------
@@ -69,13 +70,13 @@ void App::setup() {
     /*                                 
     ----------- TEXTURE SETUP -----------
     */          
-    scene.createTexture("container", assetDir + "textures\\container.png");
-    scene.createTexture("container_spec", assetDir + "textures\\container.spec.png");
+    scene.createTexture("container", assetDir + "textures\\capsule.png");
+    //scene.createTexture("container_spec", assetDir + "textures\\container.spec.png");
 
     /*                                 
     ----------- MATERIAL SETUP -----------
     */     
-    scene.createMaterial("container", 128.0f, "container", "container_spec");
+    scene.createMaterial("container", 128.0f, "container");
     
     /*                                 
     ----------- MODEL SETUP -----------

@@ -5,7 +5,7 @@
 #include <memory>
 
 #include "core/transform.hpp"
-#include "core/Material.hpp"
+#include "core/renderer/material.hpp"
 
 class Shader;
 class Mesh;

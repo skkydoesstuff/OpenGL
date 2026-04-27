@@ -1,4 +1,4 @@
-#include "core/texture.hpp"
+#include "core/renderer/texture.hpp"
 
 #include <glad/glad.h>
 #include <utils/stb_image.h>

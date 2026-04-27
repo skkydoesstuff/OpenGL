@@ -1,6 +1,6 @@
 #include <imgui.h>
 
-#include "core/scene.hpp"
+#include "core/scene/scene.hpp"
 
 #include <cstdint>
 

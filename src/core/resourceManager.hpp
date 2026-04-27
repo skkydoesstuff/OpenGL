@@ -1,10 +1,10 @@
 #pragma once
 
 #include "core/resourceStore.hpp"
-#include "core/mesh.hpp"
-#include "core/shader.hpp"
-#include "core/texture.hpp"
-#include "core/material.hpp"
+#include "core/renderer/mesh.hpp"
+#include "core/renderer/shader.hpp"
+#include "core/renderer/texture.hpp"
+#include "core/renderer/material.hpp"
 #include "core/renderer/postprocess_pass.hpp"
 
 class ResourceManager {
