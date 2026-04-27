@@ -24,10 +24,7 @@ void App::logicLoop() {
 
         threshold->uniforms["uThreshold"] = this->settings.thresholdVal;
         threshold->saveOutputAs = "bloomThreshold";
-        
         composite->uniforms["uIntensity"] = this->settings.intensity;
-        composite->extraTextures["uBloom"] = "bloomBlurred";
-        composite->extraTextures["uScene"] = "scene";
 
         r->addPass(threshold);
         for (int i = 0; i < this->settings.blurPasses; i++) {

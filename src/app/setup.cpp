@@ -102,23 +102,23 @@ void App::setup() {
     std::shared_ptr<Shader> blurShader = makeShader("blur", "blit.vert", "blur.frag");
     std::shared_ptr<Shader> compositeShader = makeShader("composite", "blit.vert", "composite.frag");
 
-    std::shared_ptr<Texture> tex = this->rm.textures.create("container", assetDir + "textures\\pubert.png");
-    std::shared_ptr<Texture> texSpec = this->rm.textures.create("container_spec", assetDir + "textures\\pubert.spec.png");
+    std::shared_ptr<Texture> tex = this->rm.textures.create("container", assetDir + "textures\\container.png");
+    std::shared_ptr<Texture> texSpec = this->rm.textures.create("container_spec", assetDir + "textures\\container.spec.png");
 
     std::shared_ptr<Material> mat = this->rm.materials.create("container");
     mat->diffuse = tex;
     mat->specular = texSpec;
-    mat->shininess = 32.0f;
+    mat->shininess = 128.0f;
 
     std::shared_ptr<Model> c = this->rm.models.create("cube", baseShader, m);
     c->transform.rotation = glm::vec3(.0f);
     c->transform.position = glm::vec3(0, 0, -3);
 
     std::shared_ptr<Light> l = this->rm.lights.create("light");
-    l->position  = glm::vec3(0.0f, 1.0f, -3.0f);  // closer, less height
-    l->ambient  = glm::vec3(0.15f);  // nearly zero
+    l->position  = glm::vec3(0.0f, 1.0f, -3.0f);
+    l->ambient  = glm::vec3(0.15f);
     l->diffuse  = glm::vec3(3.0f);
-    l->specular  = glm::vec3(1.0f);  // slight red tint on highlights
+    l->specular  = glm::vec3(1.0f);
     l->constant  = 1.0f;
     l->linear    = 0.0;
     l->quadratic = 0.0;
