@@ -49,14 +49,6 @@ void App::imguiRender() {
 
         ImGui::EndTabItem();
     }
-    if (ImGui::BeginTabItem("Bloom Settings")) {
-        ImGui::Checkbox("Enabled##bloom", &this->settings.bloomOn);
-        ImGui::SliderFloat("Threshold", &this->settings.thresholdVal, 0.0f, 32.0f);
-        ImGui::SliderInt("Blur Passes", &this->settings.blurPasses, 1, 10);
-        ImGui::SliderFloat("Intensity", &this->settings.intensity, 0.0f, 32.0f);
-
-        ImGui::EndTabItem();
-    }
 
 
     ImGui::EndTabBar();

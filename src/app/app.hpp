@@ -11,10 +11,6 @@ struct ShaderSettings {
     float scanThickness, scanDarkness, phosphorStrength, glowStrength, vignetteStrength, brightBoost;
     float normThresh, depthThresh, edgeStrength, edgeWidth;
     float pixelSize;
-
-    bool bloomOn;
-    float thresholdVal, intensity;
-    int blurPasses;
 };
 
 class App {

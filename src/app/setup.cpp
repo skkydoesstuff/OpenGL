@@ -66,10 +66,6 @@ void App::setup() {
     scene.createShader("outline", "blit.vert", "outline.frag");
     scene.createShader("pixelated", "blit.vert", "pixelated.frag");
 
-    scene.createShader("threshold", "blit.vert", "threshold.frag");
-    scene.createShader("blur", "blit.vert", "blur.frag");
-    scene.createShader("composite", "blit.vert", "composite.frag");
-
     /*                                 
     ----------- TEXTURE SETUP -----------
     */          
@@ -107,7 +103,6 @@ void App::setup() {
     this->settings.scanlineOn = false;
     this->settings.outlineOn = false;
     this->settings.pixelatedOn = false;
-    this->settings.bloomOn = false;
 
     this->settings.normThresh = 0.2f;
     this->settings.edgeStrength = 1.5f;
@@ -122,42 +117,6 @@ void App::setup() {
     this->settings.brightBoost = 1.15f;
     
     this->settings.pixelSize = 4.0f;
-
-    this->settings.thresholdVal = 0.8f;
-    this->settings.intensity = 1.2f;
-    this->settings.blurPasses = 1;
-
-    scene.createPass(
-        "threshold",
-        scene.getShader("threshold"),
-        {{"uThreshold", this->settings.normThresh}},
-        {},
-        "bloomThreshold"
-    );
-
-    scene.createPass(
-        "blurH",
-        scene.getShader("blur"),
-        {{"uHorizontal", 1}}
-    );
-
-    scene.createPass(
-        "blurV",
-        scene.getShader("blur"),
-        {{"uHorizontal", 0}},
-        {},
-        "bloomBlurred"
-    );
-
-    scene.createPass(
-        "composite",
-        scene.getShader("composite"),
-        {{"uIntensity", this->settings.intensity}},
-        {
-            {"uBloom", "bloomBlurred"},
-            {"uScene", "scene"}
-        }
-    );
 
     scene.createPass(
         "scanline",

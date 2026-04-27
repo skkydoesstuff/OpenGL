@@ -1,7 +1,8 @@
 #pragma once
 #include <glad/glad.h>
 #include "core/mesh.hpp"
-#include "core/postprocess_pass.hpp"
+#include "core/renderer/postprocess_pass.hpp"
+#include "core/renderer/renderTarget.hpp"
 
 class Renderer {
 public:
@@ -18,24 +19,12 @@ public:
 private:
     static constexpr int msaaSamples = 4; // 2, 4, or 8
 
-    unsigned int msaaFBO = 0;
-    unsigned int msaaColorTex = 0;
-    unsigned int msaaDepthTex = 0;
-    unsigned int msaaNormalTex = 0;
-
-    unsigned int FBO;
-    unsigned int depthTex;
-    unsigned int colorTex;
-    unsigned int normalTex;
-    // ping-pong buffers
-    unsigned int pingFBO, pongFBO;
-    unsigned int pingTex, pongTex;
-
-    unsigned int bloomTex, bloomFBO;
-
-    // bloom bright-pass buffer
-    unsigned int brightFBO, brightTex;
     Shader* blitShader;
+
+    RenderTarget msaa;
+    RenderTarget scene;
+    RenderTarget ping;
+    RenderTarget pong;
 
     std::vector<std::shared_ptr<PostProcessPass>> passes;
 

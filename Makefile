@@ -30,7 +30,8 @@ APP_SOURCES := \
     src/core/light.cpp \
     src/core/model.cpp \
     src/core/camera.cpp \
-    src/core/renderer.cpp \
+    src/core/renderer/renderer.cpp \
+    src/core/renderer/renderTarget.cpp \
     src/core/scene.cpp \
     src/app/init.cpp \
     src/app/setup.cpp \

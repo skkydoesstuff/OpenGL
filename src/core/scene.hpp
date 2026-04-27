@@ -9,8 +9,8 @@
 #include "core/model.hpp"
 #include "core/light.hpp"
 #include "core/camera.hpp"
-#include "core/renderer.hpp"
-#include "core/postprocess_pass.hpp"
+#include "core/renderer/renderer.hpp"
+#include "core/renderer/postprocess_pass.hpp"
 #include "material.hpp"
 
 class Scene {

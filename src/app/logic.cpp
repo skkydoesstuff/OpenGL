@@ -16,24 +16,6 @@ void App::logicLoop() {
 
     r->clearPasses();
 
-    if (this->settings.bloomOn == true) {
-        auto threshold = scene.getPass("threshold");        
-        auto blurH = scene.getPass("blurH");        
-        auto blurV = scene.getPass("blurV");        
-        auto composite = scene.getPass("composite");        
-
-        threshold->uniforms["uThreshold"] = this->settings.thresholdVal;
-        threshold->saveOutputAs = "bloomThreshold";
-        composite->uniforms["uIntensity"] = this->settings.intensity;
-
-        r->addPass(threshold);
-        for (int i = 0; i < this->settings.blurPasses; i++) {
-            r->addPass(blurH);
-            r->addPass(blurV);
-        }
-        r->addPass(composite);
-    }
-
     if (this->settings.outlineOn == true) {
         auto outline = scene.getPass("outline");
 

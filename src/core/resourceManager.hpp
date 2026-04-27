@@ -5,7 +5,7 @@
 #include "core/shader.hpp"
 #include "core/texture.hpp"
 #include "core/material.hpp"
-#include "core/postprocess_pass.hpp"
+#include "core/renderer/postprocess_pass.hpp"
 
 class ResourceManager {
 public:
