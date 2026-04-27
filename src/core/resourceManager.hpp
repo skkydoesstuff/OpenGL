@@ -8,6 +8,7 @@
 #include "core/texture.hpp"
 #include "core/material.hpp"
 #include "core/renderer.hpp"
+#include "core/postprocess_pass.hpp"
 
 class ResourceManager {
 public:
@@ -18,4 +19,5 @@ public:
     ResourceStore<Texture> textures;
     ResourceStore<Material> materials;
     ResourceStore<Renderer> renderers;
+    ResourceStore<PostProcessPass> passes;
 };

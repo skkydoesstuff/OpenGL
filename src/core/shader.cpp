@@ -10,6 +10,7 @@
 #include <unordered_map>
 
 #include "utils/fileUtils.hpp"
+#include "utils/debugUtils.hpp"
 
 const std::string exeDir = getExecutableDirectory();
 const std::string assetDir = exeDir + "\\assets\\";
@@ -74,7 +75,9 @@ int Shader::findUniform(const std::string& key) const {
     } else {
         int uni = glGetUniformLocation(this->pId, key.c_str());
         if (uni == -1) {
-            std::cout << "WARNING: uniform '" << key << "' not found or optimized out\n";
+            #ifndef NDEBUG
+                DEBUG_PRINT(std::cout << "WARNING: uniform '" << key << "' not found or optimized out\n");
+            #endif
         }
         this->uniforms[key] = uni;
         return uni;
@@ -83,7 +86,7 @@ int Shader::findUniform(const std::string& key) const {
 
 unsigned int Shader::compileShader(unsigned int shaderType, const char* const* src) {
     if (!src || !*src || strlen(*src) == 0) {
-        std::cout << "Empty shader source, aborting compile\n";
+        DEBUG_PRINT(std::cout << "Empty shader source, aborting compile\n");
         return 0;
     }
 
@@ -101,7 +104,7 @@ unsigned int Shader::compileShader(unsigned int shaderType, const char* const* s
         std::vector<GLchar> errorLog(maxLength);
         glGetShaderInfoLog(shader, maxLength, &maxLength, &errorLog[0]);
         
-        std::cout << "Shader Compilation Error: " << &errorLog[0] << std::endl;
+        DEBUG_PRINT(std::cout << "Shader Compilation Error: " << &errorLog[0] << std::endl);
     }
     
     return shader;
@@ -126,7 +129,7 @@ unsigned int Shader::linkProgram(const char* const* vSrc, const char* const* fSr
         std::vector<GLchar> errorLog(maxLength);
         glGetProgramInfoLog(pId, maxLength, &maxLength, &errorLog[0]);
 
-        std::cout << "Program linkin error: " << &errorLog[0] << std::endl;
+        DEBUG_PRINT(std::cout << "Program linkin error: " << &errorLog[0] << std::endl);
     }
 
     glDetachShader(this->pId, vId);

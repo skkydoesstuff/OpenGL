@@ -1,14 +1,22 @@
-
 #include <imgui.h>
 
-#include "core/postprocess_pass.hpp"
 #include "core/resourceManager.hpp"
 #include "core/camera.hpp"
-#include "core/texture.hpp"
 
 #include <cstdint>
 
 struct GLFWwindow;
+
+struct ShaderSettings {
+    bool scanlineOn, outlineOn, pixelatedOn;
+    float scanThickness, scanDarkness, phosphorStrength, glowStrength, vignetteStrength, brightBoost;
+    float normThresh, depthThresh, edgeStrength, edgeWidth;
+    float pixelSize;
+
+    bool bloomOn;
+    float thresholdVal, intensity;
+    int blurPasses;
+};
 
 class App {
 public:
@@ -26,25 +34,7 @@ private:
     ResourceManager rm;
     Camera* cam;
 
-    Texture* tex;
-
-    PostProcessPass scanline;
-    PostProcessPass outline;
-    PostProcessPass pixelated;
-
-    PostProcessPass threshold;
-    PostProcessPass blurH;
-    PostProcessPass blurV;
-    PostProcessPass composite;
-
-    bool scanlineOn, outlineOn, pixelatedOn;
-    float scanThickness, scanDarkness, phosphorStrength, glowStrength, vignetteStrength, brightBoost;
-    float normThresh, depthThresh, edgeStrength, edgeWidth;
-    float pixelSize;
-
-    bool bloomOn;
-    float thresholdVal, intensity;
-    int blurPasses;
+    ShaderSettings settings;
 
     void setup();
     void mainLoop();

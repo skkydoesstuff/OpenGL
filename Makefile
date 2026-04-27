@@ -5,6 +5,9 @@ TARGET   := build\app.exe
 CXXFLAGS := -O0 -g -Wall -Wextra -std=c++20
 CFLAGS   := -O0 -g
 
+CXXFLAGS_RELEASE := -O2 -DNDEBUG -Wall -Wextra -std=c++20
+CFLAGS_RELEASE   := -O2 -DNDEBUG
+
 BUILD_DIR := build
 OBJ_DIR := $(BUILD_DIR)/obj
 APP_OBJ_DIR := $(OBJ_DIR)/app
@@ -136,3 +139,7 @@ BUILD_DIR_WIN := $(subst /,\,$(BUILD_DIR))
 clean:
 	if exist "$(subst /,\,$(APP_OBJ_DIR))" rmdir /S /Q "$(subst /,\,$(APP_OBJ_DIR))"
 	if exist $(TARGET) del /Q $(TARGET)
+
+release: CXXFLAGS := $(CXXFLAGS_RELEASE)
+release: CFLAGS   := $(CFLAGS_RELEASE)
+release: clean all

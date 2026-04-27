@@ -1,4 +1,5 @@
 #include "utils/fileUtils.hpp"
+#include "utils/debugUtils.hpp"
 #include <windows.h>
 #include <shlwapi.h>
 #include <string>
@@ -19,7 +20,7 @@ std::string getExecutableDirectory() {
 std::string readFile(const std::string& path) {
     std::ifstream t(path);
     if (!t.is_open()) {
-        std::cout << "Failed to open file: " << path << "\n";
+        DEBUG_PRINT(std::cout << "Failed to open file: " << path << "\n");
         return "";
     }
     std::stringstream buffer;

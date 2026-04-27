@@ -60,22 +60,50 @@ void App::setup() {
         -0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f,  0.0f, 0.0f,
     };
 
-    std::shared_ptr<Mesh> m = this->rm.meshes.create("cube", vs, 8);
-    m->addVertexAttribute(0, 3, GL_FLOAT, 8 * sizeof(float), (const void*)0);
-    m->addVertexAttribute(1, 3, GL_FLOAT, 8 * sizeof(float), (const void*)(sizeof(float) * 3));
-    m->addVertexAttribute(2, 2, GL_FLOAT, 8 * sizeof(float), (const void*)(sizeof(float) * 6));
+    auto makeShader = [&](const std::string& name,
+                          const std::string& vert,
+                          const std::string& frag) {
+        return this->rm.shaders.create(name, vert, frag);
+    };
 
-    std::shared_ptr<Shader> baseShader = this->rm.shaders.create("base", "base.vert", "base.frag");
-    std::shared_ptr<Shader> scanlineShader = this->rm.shaders.create("scanline", "blit.vert", "scanline.frag");
-    std::shared_ptr<Shader> outlineShader = this->rm.shaders.create("outline", "blit.vert", "outline.frag");
-    std::shared_ptr<Shader> pixelatedShader = this->rm.shaders.create("pixelated", "blit.vert", "pixelated.frag");
+    auto makeMesh = [&](const std::string& name,
+                        const std::vector<float>& vertices,
+                        const std::vector<unsigned int> indices = {}) {
+        std::shared_ptr<Mesh> m = this->rm.meshes.create(name, vertices, 8, indices);
+        m->addVertexAttribute(0, 3, GL_FLOAT, 8 * sizeof(float), (const void*)0);
+        m->addVertexAttribute(1, 3, GL_FLOAT, 8 * sizeof(float), (const void*)(sizeof(float) * 3));
+        m->addVertexAttribute(2, 2, GL_FLOAT, 8 * sizeof(float), (const void*)(sizeof(float) * 6));
 
-    std::shared_ptr<Shader> thresholdShader = this->rm.shaders.create("threshold", "blit.vert", "threshold.frag");
-    std::shared_ptr<Shader> blurShader = this->rm.shaders.create("blur", "blit.vert", "blur.frag");
-    std::shared_ptr<Shader> compositeShader = this->rm.shaders.create("composite", "blit.vert", "composite.frag");
+        return m;
+    };
 
-    std::shared_ptr<Texture> tex = this->rm.textures.create("container", assetDir + "textures\\container.png");
-    std::shared_ptr<Texture> texSpec = this->rm.textures.create("container_spec", assetDir + "textures\\container.spec.png");
+    auto makePass = [&](const std::string& name,
+                        std::shared_ptr<Shader> shader,
+                        std::unordered_map<std::string, UniformValue> uniforms = {},
+                        std::unordered_map<std::string, std::string> extraTextures = {},
+                        std::string output = "") {
+        std::shared_ptr<PostProcessPass> pass = this->rm.passes.create(name);
+        pass->shader = shader;
+        pass->uniforms = std::move(uniforms);
+        pass->extraTextures = std::move(extraTextures);
+        pass->saveOutputAs = std::move(output);
+
+        return pass;
+    };
+
+    std::shared_ptr<Mesh> m = makeMesh("cube", vs);
+
+    std::shared_ptr<Shader> baseShader = makeShader("base", "base.vert", "base.frag");
+    std::shared_ptr<Shader> scanlineShader = makeShader("scanline", "blit.vert", "scanline.frag");
+    std::shared_ptr<Shader> outlineShader = makeShader("outline", "blit.vert", "outline.frag");
+    std::shared_ptr<Shader> pixelatedShader = makeShader("pixelated", "blit.vert", "pixelated.frag");
+
+    std::shared_ptr<Shader> thresholdShader = makeShader("threshold", "blit.vert", "threshold.frag");
+    std::shared_ptr<Shader> blurShader = makeShader("blur", "blit.vert", "blur.frag");
+    std::shared_ptr<Shader> compositeShader = makeShader("composite", "blit.vert", "composite.frag");
+
+    std::shared_ptr<Texture> tex = this->rm.textures.create("container", assetDir + "textures\\pubert.png");
+    std::shared_ptr<Texture> texSpec = this->rm.textures.create("container_spec", assetDir + "textures\\pubert.spec.png");
 
     std::shared_ptr<Material> mat = this->rm.materials.create("container");
     mat->diffuse = tex;
@@ -99,61 +127,93 @@ void App::setup() {
     cam->position = {0.0f, 0.0f, 1.0f};
     cam->rotation = {0.0f, -90.0f, 0.0f};
 
-    scanlineOn = false;
-    outlineOn = false;
-    pixelatedOn = false;
-    bloomOn = false;
-
-    this->normThresh = 0.2f;
-    this->edgeStrength = 1.5f;
-    this->depthThresh = 0.01f;
-    this->edgeWidth = 2.0f;
-
-    this->scanThickness = 2.0f;
-    this->scanDarkness = 0.6f;
-    this->phosphorStrength = 1.5f;
-    this->glowStrength = 0.3f;
-    this->vignetteStrength = 0.35f;
-    this->brightBoost = 1.15f;
+    this->settings = {};
     
-    this->pixelSize = 4.0f;
 
-    thresholdVal = 0.8f;
-    intensity = 1.2f;
-    blurPasses = 1;
+    this->settings.scanlineOn = false;
+    this->settings.outlineOn = false;
+    this->settings.pixelatedOn = false;
+    this->settings.bloomOn = false;
 
-    threshold.shader = thresholdShader;
-    threshold.uniforms["uThreshold"] = 0.8f;
-    threshold.saveOutputAs = "bloomThreshold";
+    this->settings.normThresh = 0.2f;
+    this->settings.edgeStrength = 1.5f;
+    this->settings.depthThresh = 0.01f;
+    this->settings.edgeWidth = 2.0f;
 
-    blurH.shader = blurShader;
-    blurH.uniforms["uHorizontal"] = 1;
+    this->settings.scanThickness = 2.0f;
+    this->settings.scanDarkness = 0.6f;
+    this->settings.phosphorStrength = 1.5f;
+    this->settings.glowStrength = 0.3f;
+    this->settings.vignetteStrength = 0.35f;
+    this->settings.brightBoost = 1.15f;
+    
+    this->settings.pixelSize = 4.0f;
 
-    blurV.shader = blurShader;
-    blurV.uniforms["uHorizontal"] = 0;
-    blurV.saveOutputAs = "bloomBlurred";
+    this->settings.thresholdVal = 0.8f;
+    this->settings.intensity = 1.2f;
+    this->settings.blurPasses = 1;
 
-    composite.shader = compositeShader;
-    composite.uniforms["uIntensity"] = 1.2f;
-    composite.extraTextures["uBloom"] = "bloomBlurred";
-    composite.extraTextures["uScene"] = "scene"; // original scene
+    std::shared_ptr<PostProcessPass> threshold = makePass(
+        "threshold",
+        thresholdShader,
+        {{"uThreshold", this->settings.normThresh}},
+        {},
+        "bloomThreshold"
+    );
 
-    scanline.shader = scanlineShader;
-    scanline.uniforms["uScanlineThickness"] = scanThickness;
-    scanline.uniforms["uScanlineDarkness"]  = scanDarkness;
-    scanline.uniforms["uPhosphorStrength"]  = phosphorStrength;
-    scanline.uniforms["uGlowStrength"]      = glowStrength;
-    scanline.uniforms["uVignetteStrength"]  = vignetteStrength;
-    scanline.uniforms["uBrightBoost"]       = brightBoost;
+    std::shared_ptr<PostProcessPass> blurH = makePass(
+        "blurH",
+        blurShader,
+        {{"uHorizontal", 1}}
+    );
 
-    outline.shader = outlineShader;
-    outline.uniforms["uNormalThreshold"]  = normThresh;
-    outline.uniforms["uEdgeStrength"]     = edgeStrength;
-    outline.uniforms["uDepthThreshold"]   = depthThresh;
-    outline.uniforms["uEdgeWidth"]        = edgeWidth;
+    std::shared_ptr<PostProcessPass> blurV = makePass(
+        "blurV",
+        blurShader,
+        {{"uHorizontal", 0}},
+        {},
+        "bloomBlurred"
+    );
 
-    pixelated.shader = pixelatedShader;
-    pixelated.uniforms["uPixelSize"] = pixelSize;
+    std::shared_ptr<PostProcessPass> composite = makePass(
+        "composite",
+        compositeShader,
+        {{"uIntensity", this->settings.intensity}},
+        {
+            {"uBloom", "bloomBlurred"},
+            {"uScene", "scene"}
+        }
+    );
+
+    std::shared_ptr<PostProcessPass> scanline = makePass(
+        "scanline",
+        scanlineShader,
+        {
+            {"uScanlineThickness", this->settings.scanThickness},
+            {"uScanlineDarkness", this->settings.scanDarkness},
+            {"uPhosphorStrength", this->settings.phosphorStrength},
+            {"uGlowStrength", this->settings.glowStrength},
+            {"uVignetteStrength", this->settings.vignetteStrength},
+            {"uBrightBoost", this->settings.brightBoost},
+        }
+    );
+
+    std::shared_ptr<PostProcessPass> outline = makePass(
+        "outline",
+        outlineShader,
+        {
+            {"uNormalThreshold", this->settings.normThresh},
+            {"uEdgeStrength", this->settings.edgeStrength},
+            {"uDepthThreshold", this->settings.depthThresh},
+            {"uEdgeWidth", this->settings.edgeWidth},
+        }
+    );
+
+    std::shared_ptr<PostProcessPass> pixelated = makePass(
+        "pixelated",
+        pixelatedShader,
+        {{"uPixelSize", this->settings.pixelSize}}
+    );
 
     std::shared_ptr<Renderer> r = this->rm.renderers.create("main");
     r->init(this->width, this->height);

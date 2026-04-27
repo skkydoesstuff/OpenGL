@@ -4,8 +4,9 @@
 #include <GLFW/glfw3.h>
 
 #include "core/shader.hpp"
-#include "postprocess_pass.hpp"
+
 #include "utils/fileUtils.hpp"
+#include "utils/debugUtils.hpp"
 
 #include "core/mesh.hpp"
 #include "core/postprocess_pass.hpp"
@@ -38,7 +39,7 @@ void Renderer::renderFullscreenQuad() {
     this->fullscreenQuadMesh->draw();
 }
 
-void Renderer::addPass(const PostProcessPass& pass) {
+void Renderer::addPass(std::shared_ptr<PostProcessPass> pass) {
     this->passes.push_back(pass);
 }
 
@@ -130,6 +131,9 @@ void Renderer::init(int width, int height) {
     pingFBO = makeFramebuffer({ { GL_COLOR_ATTACHMENT0, pingTex } });
     pongFBO = makeFramebuffer({ { GL_COLOR_ATTACHMENT0, pongTex } });
 
+    bloomTex = makeTexture(width, height, GL_RGB16F, GL_RGB, GL_FLOAT, GL_LINEAR);
+    bloomFBO = makeFramebuffer({ { GL_COLOR_ATTACHMENT0, bloomTex } });
+
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
     initFullscreenQuad();
@@ -185,21 +189,21 @@ void Renderer::endScene() {
         glViewport(0, 0, width, height);
         glClear(GL_COLOR_BUFFER_BIT);
 
-        pass.shader->bind();
-        bindTex(0, inputTex);  pass.shader->setUniformInt("uTexture", 0);
-        bindTex(1, depthTex);  pass.shader->setUniformInt("uDepth",   1);
-        bindTex(2, normalTex); pass.shader->setUniformInt("uNormal",  2);
-        pass.shader->setUniformVec2("uOutputSize", glm::vec2(width, height));
-        pass.applyUniforms();
+        pass->shader->bind();
+        bindTex(0, inputTex);  pass->shader->setUniformInt("uTexture", 0);
+        bindTex(1, depthTex);  pass->shader->setUniformInt("uDepth",   1);
+        bindTex(2, normalTex); pass->shader->setUniformInt("uNormal",  2);
+        pass->shader->setUniformVec2("uOutputSize", glm::vec2(width, height));
+        pass->applyUniforms();
 
         int slot = 3;
-        for (auto& [uniformName, snapshotName] : pass.extraTextures) {
+        for (auto& [uniformName, snapshotName] : pass->extraTextures) {
             if (snapshots.count(snapshotName)) {
                 bindTex(slot, snapshots[snapshotName]);
-                pass.shader->setUniformInt(uniformName, slot);
+                pass->shader->setUniformInt(uniformName, slot);
                 slot++;
             } else {
-                std::cout << "MISSING snapshot: " << snapshotName << "\n";
+                DEBUG_PRINT(std::cout << "MISSING snapshot: " << snapshotName << "\n");
             }
         }
 
@@ -208,8 +212,12 @@ void Renderer::endScene() {
         inputTex = buffers[target].tex;
         target ^= 1;
 
-        if (!pass.saveOutputAs.empty()) {
-            snapshots[pass.saveOutputAs] = inputTex;
+        if (!pass->saveOutputAs.empty()) {
+            // Blit current result into stable snapshot texture
+            glBindFramebuffer(GL_READ_FRAMEBUFFER, buffers[target ^ 1].fbo); // just-written buffer
+            glBindFramebuffer(GL_DRAW_FRAMEBUFFER, bloomFBO);
+            glBlitFramebuffer(0,0,width,height, 0,0,width,height, GL_COLOR_BUFFER_BIT, GL_LINEAR);
+            snapshots[pass->saveOutputAs] = bloomTex;  // stable, not a ping-pong buffer
         }
     }
 

@@ -8,7 +8,7 @@ public:
     void init(int width, int height);
     void beginScene();
     void endScene();
-    void addPass(const PostProcessPass& pass);
+    void addPass(std::shared_ptr<PostProcessPass> pass);
     void clearPasses();
     void setPassUniform(size_t index, const std::string& name, const UniformValue& value);
     void setDimensions(int width, int height);
@@ -31,11 +31,13 @@ private:
     unsigned int pingFBO, pongFBO;
     unsigned int pingTex, pongTex;
 
+    unsigned int bloomTex, bloomFBO;
+
     // bloom bright-pass buffer
     unsigned int brightFBO, brightTex;
     Shader* blitShader;
 
-    std::vector<PostProcessPass> passes;
+    std::vector<std::shared_ptr<PostProcessPass>> passes;
 
     int width, height;
 

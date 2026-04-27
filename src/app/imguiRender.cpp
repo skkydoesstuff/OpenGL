@@ -24,63 +24,36 @@ void App::imguiRender() {
     ImGui::BeginTabBar("Shader Options");
 
     if (ImGui::BeginTabItem("Scanline Settings")) {
-        ImGui::Checkbox("Enabled##scanline", &this->scanlineOn);
-        ImGui::SliderFloat("Scanline Thickness",  &this->scanThickness,      0.1f, 10.0f);
-        ImGui::SliderFloat("Scanline Darkness",   &this->scanDarkness,       0.1f, 10.0f);
-        ImGui::SliderFloat("Phosphor Strength",   &this->phosphorStrength,   0.1f, 10.0f);
-        ImGui::SliderFloat("Glow Strength",       &this->glowStrength,       0.1f, 10.0f);
-        ImGui::SliderFloat("Vignette Strength",   &this->vignetteStrength,   0.1f, 10.0f);
-        ImGui::SliderFloat("Bright Boost",        &this->brightBoost,        0.1f, 10.0f);
-
-        // Sync to pass every frame
-        scanline.uniforms["uScanlineThickness"] = scanThickness;
-        scanline.uniforms["uScanlineDarkness"]  = scanDarkness;
-        scanline.uniforms["uPhosphorStrength"]  = phosphorStrength;
-        scanline.uniforms["uGlowStrength"]      = glowStrength;
-        scanline.uniforms["uVignetteStrength"]  = vignetteStrength;
-        scanline.uniforms["uBrightBoost"]       = brightBoost;
+        ImGui::Checkbox("Enabled##scanline", &this->settings.scanlineOn);
+        ImGui::SliderFloat("Scanline Thickness",  &this->settings.scanThickness,      0.1f, 10.0f);
+        ImGui::SliderFloat("Scanline Darkness",   &this->settings.scanDarkness,       0.1f, 10.0f);
+        ImGui::SliderFloat("Phosphor Strength",   &this->settings.phosphorStrength,   0.1f, 10.0f);
+        ImGui::SliderFloat("Glow Strength",       &this->settings.glowStrength,       0.1f, 10.0f);
+        ImGui::SliderFloat("Vignette Strength",   &this->settings.vignetteStrength,   0.1f, 10.0f);
+        ImGui::SliderFloat("Bright Boost",        &this->settings.brightBoost,        0.1f, 10.0f);
 
         ImGui::EndTabItem();
     }
     if (ImGui::BeginTabItem("Outline Settings")) {
-        ImGui::Checkbox("Enabled##outline", &this->outlineOn);
-        ImGui::SliderFloat("Normal Threshold", &this->normThresh,    0.0f, 1.0f);
-        ImGui::SliderFloat("Depth Threshold",  &this->depthThresh,   0.0f, 1.0f);
-        ImGui::SliderFloat("Edge Strength",    &this->edgeStrength,  0.0f, 10.0f);
-        ImGui::SliderFloat("Edge Width",       &this->edgeWidth,     0.1f, 5.0f);
-
-        outline.uniforms["uNormalThreshold"] = normThresh;
-        outline.uniforms["uEdgeStrength"]    = edgeStrength;
-        outline.uniforms["uDepthThreshold"]  = depthThresh;
-        outline.uniforms["uEdgeWidth"]       = edgeWidth;
+        ImGui::Checkbox("Enabled##outline", &this->settings.outlineOn);
+        ImGui::SliderFloat("Normal Threshold", &this->settings.normThresh,    0.0f, 1.0f);
+        ImGui::SliderFloat("Depth Threshold",  &this->settings.depthThresh,   0.0f, 1.0f);
+        ImGui::SliderFloat("Edge Strength",    &this->settings.edgeStrength,  0.0f, 10.0f);
+        ImGui::SliderFloat("Edge Width",       &this->settings.edgeWidth,     0.1f, 5.0f);
 
         ImGui::EndTabItem();
     }
     if (ImGui::BeginTabItem("Pixelated Settings")) {
-        ImGui::Checkbox("Enabled##pixelated", &this->pixelatedOn);
-        ImGui::SliderFloat("Pixel Size", &this->pixelSize, 1.0f, 32.0f);
-
-        pixelated.uniforms["uPixelSize"] = pixelSize;
+        ImGui::Checkbox("Enabled##pixelated", &this->settings.pixelatedOn);
+        ImGui::SliderFloat("Pixel Size", &this->settings.pixelSize, 1.0f, 32.0f);
 
         ImGui::EndTabItem();
     }
     if (ImGui::BeginTabItem("Bloom Settings")) {
-        ImGui::Checkbox("Enabled##bloom", &this->bloomOn);
-        ImGui::SliderFloat("Threshold", &this->thresholdVal, 0.0f, 32.0f);
-        ImGui::SliderInt("Blur Passes", &this->blurPasses, 1, 10);
-        ImGui::SliderFloat("Intensity", &this->intensity, 0.0f, 32.0f);
-
-        threshold.uniforms["uThreshold"] = thresholdVal;
-        threshold.saveOutputAs = "bloomThreshold";
-
-        blurH.uniforms["uHorizontal"] = 1;
-
-        blurV.uniforms["uHorizontal"] = 0;
-        blurV.saveOutputAs = "bloomBlurred";
-
-        composite.uniforms["uIntensity"] = intensity;
-        composite.extraTextures["uBloom"] = "bloomBlurred";
-        composite.extraTextures["uScene"] = "scene";
+        ImGui::Checkbox("Enabled##bloom", &this->settings.bloomOn);
+        ImGui::SliderFloat("Threshold", &this->settings.thresholdVal, 0.0f, 32.0f);
+        ImGui::SliderInt("Blur Passes", &this->settings.blurPasses, 1, 10);
+        ImGui::SliderFloat("Intensity", &this->settings.intensity, 0.0f, 32.0f);
 
         ImGui::EndTabItem();
     }
