@@ -1,0 +1,63 @@
+#include "utils/mtlLoader.hpp"
+#include "utils/fileUtils.hpp"
+#include <sstream>
+#include <fstream>
+#include <iostream>
+
+std::unordered_map<std::string, Material>
+MTLLoader::load(const std::string& path) {
+
+    static std::string exeDir = getExecutableDirectory();
+    static std::string assetDir = exeDir + "\\assets\\";
+
+    std::unordered_map<std::string, Material> materials;
+
+    std::ifstream file(path);
+    if (!file.is_open()) {
+        std::cerr << "Failed to open MTL: " << path << "\n";
+        return materials;
+    }
+
+    std::string line;
+    std::string current;
+
+    while (std::getline(file, line)) {
+        std::istringstream iss(line);
+
+        std::string type;
+        iss >> type;
+
+        if (type == "newmtl") {
+            iss >> current;
+            materials[current] = Material{};
+        }
+
+        else if (type == "map_Kd") {
+            std::string tex;
+            iss >> tex;
+
+            std::string fullPath = assetDir + tex;
+
+            materials[current].diffuse =
+                std::make_shared<Texture>(fullPath);
+        }
+
+        else if (type == "map_Ks") {
+            std::string tex;
+            iss >> tex;
+
+            std::string fullPath = assetDir + tex;
+
+            materials[current].specular =
+                std::make_shared<Texture>(fullPath);
+        }
+
+        else if (type == "Ns") {
+            float ns;
+            iss >> ns;
+            materials[current].shininess = ns;
+        }
+    }
+
+    return materials;
+}

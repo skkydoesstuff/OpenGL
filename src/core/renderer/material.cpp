@@ -6,15 +6,20 @@
 #include "core/renderer/shader.hpp"
 
 void Material::bind(const Shader& shader) const {
+    // Diffuse (required)
     if (diffuse) {
         diffuse->bind(0);
-        shader.setUniformInt("material.diffuse", 0);
+        shader.setUniformInt("uDiffuseMap", 0);
     }
 
+    // Specular (optional)
     if (specular) {
         specular->bind(1);
-        shader.setUniformInt("material.specular", 1);
+        shader.setUniformInt("uSpecularMap", 1);
+        shader.setUniformFloat("uHasSpecularMap", 1.0f);
+    } else {
+        shader.setUniformFloat("uHasSpecularMap", 0.0f);
     }
 
-    shader.setUniformFloat("material.shininess", shininess);
+    shader.setUniformFloat("uShininess", shininess);
 }

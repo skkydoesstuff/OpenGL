@@ -53,9 +53,11 @@ public:
     Renderer* createRenderer(const std::string& tag);
     
     std::shared_ptr<Shader> getShader(const std::string& tag);
+    std::shared_ptr<Mesh> getMesh(const std::string& tag);
     std::shared_ptr<Texture> getTexture(const std::string& tag);
     std::shared_ptr<Material> getMaterial(const std::string& tag);
     std::shared_ptr<PostProcessPass> getPass(const std::string& tag);
+    
 
     Model* getModel(const std::string& tag);
     Light* getLight(const std::string& tag);

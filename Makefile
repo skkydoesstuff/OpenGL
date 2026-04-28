@@ -42,6 +42,8 @@ APP_SOURCES := \
     src/app/render.cpp \
     src/app/cleanup.cpp \
     src/utils/fileUtils.cpp \
+    src/utils/objLoader.cpp \
+    src/utils/mtlLoader.cpp \
     src/utils/tiny_obj_loader.cpp \
     src/utils/stb_image.cpp 
 

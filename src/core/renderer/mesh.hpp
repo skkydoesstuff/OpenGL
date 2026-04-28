@@ -2,16 +2,25 @@
 
 #include <glad/glad.h>
 #include <vector>
+#include <string>
+
+struct SubMesh {
+    uint32_t indexOffset;
+    uint32_t indexCount;
+    std::string materialName;
+};
 
 class Mesh {
 public:
     Mesh(std::vector<float> vertices, uint32_t stride, std::vector<unsigned int> indices = {});
-
     ~Mesh();
     
     void addVertexAttribute(uint32_t index, uint32_t attribSize, unsigned int attribType, GLsizei stride, const void* offset);
 
-    void draw();
+    void draw() const;
+    void drawSubMesh(const SubMesh& sm) const;
+
+    std::vector<SubMesh> submeshes; // <-- add this
 
     Mesh(const Mesh &) = delete;
     Mesh& operator=(const Mesh &) = delete;
@@ -21,5 +30,6 @@ private:
     std::vector<float> vs;
     std::vector<unsigned int> is;
     uint32_t stride;
+
     void bindVAO() const;
 };

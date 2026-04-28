@@ -33,13 +33,25 @@ void Mesh::addVertexAttribute(uint32_t index, uint32_t attribSize, unsigned int 
     glEnableVertexAttribArray(index);
 }
 
-void Mesh::draw() {
-    this->bindVAO();
-    if (this->is.size() > 0) {
-        glDrawElements(GL_TRIANGLES, this->is.size(), GL_UNSIGNED_INT, nullptr);
+void Mesh::draw() const {
+    bindVAO();
+
+    if (!is.empty()) {
+        glDrawElements(GL_TRIANGLES, is.size(), GL_UNSIGNED_INT, 0);
     } else {
-        glDrawArrays(GL_TRIANGLES, 0, this->vs.size()/stride);
+        glDrawArrays(GL_TRIANGLES, 0, vs.size() / stride);
     }
+}
+
+void Mesh::drawSubMesh(const SubMesh& sm) const {
+    bindVAO();
+
+    glDrawElements(
+        GL_TRIANGLES,
+        sm.indexCount,
+        GL_UNSIGNED_INT,
+        (void*)(sm.indexOffset * sizeof(unsigned int))
+    );
 }
 
 void Mesh::bindVAO() const { glBindVertexArray(this->VAO); }

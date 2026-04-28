@@ -6,58 +6,15 @@
 #include "utils/fileUtils.hpp"
 #include "utils/stb_image.h"
 
+#include <iostream>
 
 void App::setup() {
     std::string exeDir = getExecutableDirectory();
     std::string assetDir = exeDir + "\\assets\\";
-
-    std::vector<float> vs = {
-        // positions          // normals           // texcoords
-        // Back face
-        -0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f,  0.0f, 0.0f,
-        0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f,   1.0f, 0.0f,
-        0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f,   1.0f, 1.0f,
-        0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f,   1.0f, 1.0f,
-        -0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f,  0.0f, 1.0f,
-        -0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f,  0.0f, 0.0f,
-        // Front face
-        -0.5f, -0.5f,  0.5f,  0.0f,  0.0f,  1.0f,  0.0f, 0.0f,
-        0.5f, -0.5f,  0.5f,  0.0f,  0.0f,  1.0f,   1.0f, 0.0f,
-        0.5f,  0.5f,  0.5f,  0.0f,  0.0f,  1.0f,   1.0f, 1.0f,
-        0.5f,  0.5f,  0.5f,  0.0f,  0.0f,  1.0f,   1.0f, 1.0f,
-        -0.5f,  0.5f,  0.5f,  0.0f,  0.0f,  1.0f,  0.0f, 1.0f,
-        -0.5f, -0.5f,  0.5f,  0.0f,  0.0f,  1.0f,  0.0f, 0.0f,
-        // Left face
-        -0.5f,  0.5f,  0.5f, -1.0f,  0.0f,  0.0f,  0.0f, 1.0f,
-        -0.5f,  0.5f, -0.5f, -1.0f,  0.0f,  0.0f,  1.0f, 1.0f,
-        -0.5f, -0.5f, -0.5f, -1.0f,  0.0f,  0.0f,  1.0f, 0.0f,
-        -0.5f, -0.5f, -0.5f, -1.0f,  0.0f,  0.0f,  1.0f, 0.0f,
-        -0.5f, -0.5f,  0.5f, -1.0f,  0.0f,  0.0f,  0.0f, 0.0f,
-        -0.5f,  0.5f,  0.5f, -1.0f,  0.0f,  0.0f,  0.0f, 1.0f,
-        // Right face
-        0.5f,  0.5f,  0.5f,  1.0f,  0.0f,  0.0f,   1.0f, 1.0f,
-        0.5f,  0.5f, -0.5f,  1.0f,  0.0f,  0.0f,   0.0f, 1.0f,
-        0.5f, -0.5f, -0.5f,  1.0f,  0.0f,  0.0f,   0.0f, 0.0f,
-        0.5f, -0.5f, -0.5f,  1.0f,  0.0f,  0.0f,   0.0f, 0.0f,
-        0.5f, -0.5f,  0.5f,  1.0f,  0.0f,  0.0f,   1.0f, 0.0f,
-        0.5f,  0.5f,  0.5f,  1.0f,  0.0f,  0.0f,   1.0f, 1.0f,
-        // Bottom face
-        -0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f,  0.0f, 1.0f,
-        0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f,   1.0f, 1.0f,
-        0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f,   1.0f, 0.0f,
-        0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f,   1.0f, 0.0f,
-        -0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f,  0.0f, 0.0f,
-        -0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f,  0.0f, 1.0f,
-        // Top face
-        -0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f,  0.0f, 0.0f,
-        0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f,   1.0f, 0.0f,
-        0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,   1.0f, 1.0f,
-        0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,   1.0f, 1.0f,
-        -0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,  0.0f, 1.0f,
-        -0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f,  0.0f, 0.0f,
-    };
     
-    scene.createMesh("cube", {}, {}, "capsule.obj");
+    scene.createMesh("tree", {}, {}, "tree");
+
+    auto mesh = scene.getMesh("tree");
 
     /*                                 
     ----------- SHADER SETUP -----------
@@ -70,27 +27,34 @@ void App::setup() {
     /*                                 
     ----------- TEXTURE SETUP -----------
     */          
-    scene.createTexture("container", assetDir + "textures\\capsule.png");
-    //scene.createTexture("container_spec", assetDir + "textures\\container.spec.png");
+    scene.createTexture("foliage", assetDir + "textures\\foliage_baked_BC.jpg");
+    scene.createTexture("oreada", assetDir + "textures\\oreada_baked.jpg");
+    scene.createTexture("rocks", assetDir + "textures\\rocks_baked.jpg");
+    scene.createTexture("rope", assetDir + "textures\\rope_baked.jpg");
+    scene.createTexture("tree", assetDir + "textures\\tree_baked.jpg");
 
     /*                                 
     ----------- MATERIAL SETUP -----------
     */     
-    scene.createMaterial("container", 128.0f, "container");
-    
+    scene.createMaterial("baked_flowers", 360.0f, "foliage");
+    scene.createMaterial("baked_oreada", 360.0f, "oreada");
+    scene.createMaterial("baked_rocks", 360.0f, "rocks");
+    scene.createMaterial("baked_rope", 360.0f, "rope");
+    scene.createMaterial("baked_tree", 360.0f, "tree");
+
     /*                                 
     ----------- MODEL SETUP -----------
     */     
-    auto c = scene.createModel("cube", "base", "cube");
+    auto c = scene.createModel("tree", "base", "tree");
     c->transform.rotation = glm::vec3(.0f);
-    c->transform.position = glm::vec3(0, 0, -3);
-    c->setMaterial(scene.getMaterial("container"));
+    c->transform.position = glm::vec3(0, 0, 0);
+    c->transform.scale = glm::vec3(0.50f);
 
     auto l = scene.createLight("light");
-    l->position  = glm::vec3(0.0f, 1.0f, -3.0f);
-    l->ambient  = glm::vec3(0.15f);
+    l->position  = glm::vec3(0.0f, 5.0f, 0.0f);
+    l->ambient  = glm::vec3(0.15f, 0.15f, 0.15f);
     l->diffuse  = glm::vec3(3.0f);
-    l->specular  = glm::vec3(1.0f);
+    l->specular  = glm::vec3(0.5f, 0.5f, 0.5f);
     l->constant  = 1.0f;
     l->linear    = 0.0;
     l->quadratic = 0.0;
@@ -99,25 +63,19 @@ void App::setup() {
     cam->position = {0.0f, 0.0f, 1.0f};
     cam->rotation = {0.0f, -90.0f, 0.0f};
 
-    this->settings = {};
+    this->settings = {
+        .scanlineOn = false,
+        .pixelatedOn = false,
 
-    this->settings.scanlineOn = false;
-    this->settings.outlineOn = false;
-    this->settings.pixelatedOn = false;
+        .scanThickness = 2.0f,
+        .scanDarkness = 0.6f,
+        .phosphorStrength = 1.5f,
+        .glowStrength = 0.3f,
+        .vignetteStrength = 0.35f,
+        .brightBoost = 1.15f,
 
-    this->settings.normThresh = 0.2f;
-    this->settings.edgeStrength = 1.5f;
-    this->settings.depthThresh = 0.01f;
-    this->settings.edgeWidth = 2.0f;
-
-    this->settings.scanThickness = 2.0f;
-    this->settings.scanDarkness = 0.6f;
-    this->settings.phosphorStrength = 1.5f;
-    this->settings.glowStrength = 0.3f;
-    this->settings.vignetteStrength = 0.35f;
-    this->settings.brightBoost = 1.15f;
-    
-    this->settings.pixelSize = 4.0f;
+        .pixelSize = 4.0f
+    };
 
     scene.createPass(
         "scanline",
@@ -129,19 +87,6 @@ void App::setup() {
             {"uGlowStrength", this->settings.glowStrength},
             {"uVignetteStrength", this->settings.vignetteStrength},
             {"uBrightBoost", this->settings.brightBoost},
-        }
-    );
-
-    scene.createPass(
-        "outline",
-        scene.getShader("outline"),
-        {
-            {"uNormalThreshold", this->settings.normThresh},
-            {"uEdgeStrength", this->settings.edgeStrength},
-            {"uDepthThreshold", this->settings.depthThresh},
-            {"uEdgeWidth", this->settings.edgeWidth},
-            {"uNear", 0.1f},
-            {"uFar", 100.0f},
         }
     );
 

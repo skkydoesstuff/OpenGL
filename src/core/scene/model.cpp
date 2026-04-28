@@ -17,10 +17,6 @@ Model::Model(std::shared_ptr<Shader> shader, std::shared_ptr<Mesh> mesh) {
     this->transform.scale = glm::vec3(1.0f);
 }
 
-void Model::setMaterial(std::shared_ptr<Material> mat) {
-    this->mat = mat;
-}
-
 void Model::updateModelMatrix() {
     this->model = glm::mat4(1.0f);
     this->model = glm::translate(this->model, this->transform.position);
@@ -30,10 +26,20 @@ void Model::updateModelMatrix() {
     this->model = glm::scale(this->model, this->transform.scale);
 }
 
-void Model::draw() {
-    this->shader->bind();
-    this->shader->setUniformMat4("model", this->model);
-    this->mat->bind(*this->shader);
+void Model::draw(
+    std::function<std::shared_ptr<Material>(const std::string&)> getMaterial
+) {
+    shader->bind();
+    shader->setUniformMat4("model", model);
 
-    this->mesh->draw();
+    for (const auto& sm : mesh->submeshes) {
+
+        auto mat = getMaterial(sm.materialName);
+
+        if (mat) {
+            mat->bind(*shader);
+        }
+
+        mesh->drawSubMesh(sm);
+    }
 }

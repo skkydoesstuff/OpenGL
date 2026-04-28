@@ -4,7 +4,7 @@
 #include "core/resourceManager.hpp"
 #include "core/scene/model.hpp"
 
-#include "utils/fileUtils.hpp"
+#include "utils/objLoader.hpp"
 
 Scene::Scene() {
     this->rm = std::make_unique<ResourceManager>();
@@ -32,11 +32,13 @@ void Scene::createMesh(const std::string& tag,
         m->addVertexAttribute(1, 3, GL_FLOAT, 8 * sizeof(float), (const void*)(sizeof(float) * 3));
         m->addVertexAttribute(2, 2, GL_FLOAT, 8 * sizeof(float), (const void*)(sizeof(float) * 6));
     } else if (objFileName.empty() != true) {
-        MeshStructure meshStructure = readObjFile(objFileName);
+        MeshStructure meshStructure = loadOBJ(objFileName);
         std::shared_ptr<Mesh> m = this->rm->meshes.create(tag, meshStructure.vertices, 8, meshStructure.indices);
         m->addVertexAttribute(0, 3, GL_FLOAT, 8 * sizeof(float), (const void*)0);
         m->addVertexAttribute(1, 3, GL_FLOAT, 8 * sizeof(float), (const void*)(sizeof(float) * 3));
         m->addVertexAttribute(2, 2, GL_FLOAT, 8 * sizeof(float), (const void*)(sizeof(float) * 6));
+
+        m->submeshes = meshStructure.submeshes;
     }
 }
 
@@ -123,6 +125,10 @@ std::shared_ptr<Shader> Scene::getShader(const std::string& tag) {
     return this->rm->shaders.get(tag);
 }
 
+std::shared_ptr<Mesh> Scene::getMesh(const std::string& tag) {
+    return this->rm->meshes.get(tag);
+}
+
 std::shared_ptr<Texture> Scene::getTexture(const std::string& tag) {
     return this->rm->textures.get(tag);
 }
@@ -204,6 +210,6 @@ void Scene::drawScene(const std::string& shaderTag) {
 
     for (auto& [key, model] : this->models) {
         model->updateModelMatrix();
-        model->draw();
+        model->draw([&](const std::string& k){return this->rm->materials.get(k);});
     }
 }

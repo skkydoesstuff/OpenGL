@@ -7,9 +7,8 @@
 struct GLFWwindow;
 
 struct ShaderSettings {
-    bool scanlineOn, outlineOn, pixelatedOn;
+    bool scanlineOn, pixelatedOn;
     float scanThickness, scanDarkness, phosphorStrength, glowStrength, vignetteStrength, brightBoost;
-    float normThresh, depthThresh, edgeStrength, edgeWidth;
     float pixelSize;
 };
 

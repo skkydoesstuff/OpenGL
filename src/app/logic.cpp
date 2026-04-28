@@ -16,17 +16,6 @@ void App::logicLoop() {
 
     r->clearPasses();
 
-    if (this->settings.outlineOn == true) {
-        auto outline = scene.getPass("outline");
-
-        outline->uniforms["uNormalThreshold"] = this->settings.normThresh;
-        outline->uniforms["uEdgeStrength"]    = this->settings.edgeStrength;
-        outline->uniforms["uDepthThreshold"]  = this->settings.depthThresh;
-        outline->uniforms["uEdgeWidth"]       = this->settings.edgeWidth;
-
-        r->addPass(outline);
-    }
-
     if (this->settings.scanlineOn == true) {
         auto scanline = scene.getPass("scanline");
 
@@ -46,4 +35,66 @@ void App::logicLoop() {
         pixelated->uniforms["uPixelSize"] = this->settings.pixelSize;
         r->addPass(pixelated);
     }
+
+    Camera* cam = scene.getCamera();
+    float speed = 0.05f;
+    glm::vec3 forward;
+    glm::vec3 right;
+    glm::vec3 up(0.0f, 1.0f, 0.0f);
+
+    // convert rotation (degrees) → forward vector
+    float yaw   = glm::radians(cam->rotation.y);
+    float pitch = glm::radians(cam->rotation.x);
+
+    forward.x = cos(yaw) * cos(pitch);
+    forward.y = sin(pitch);
+    forward.z = sin(yaw) * cos(pitch);
+
+    forward = glm::normalize(forward);
+    right = glm::normalize(glm::cross(forward, up));
+
+    if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
+        cam->position += forward * speed;
+
+    if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
+        cam->position -= forward * speed;
+
+    if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
+        cam->position -= right * speed;
+
+    if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
+        cam->position += right * speed;
+
+    if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS)
+        cam->position += up * speed;
+
+    if (glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS)
+        cam->position -= up * speed;
+
+    static double lastX = 0.0, lastY = 0.0;
+    static bool first = true;
+
+    double x, y;
+    glfwGetCursorPos(window, &x, &y);
+
+    if (first) {
+        lastX = x;
+        lastY = y;
+        first = false;
+    }
+
+    float sensitivity = 0.1f;
+
+    float xoffset = (x - lastX) * sensitivity;
+    float yoffset = (lastY - y) * sensitivity;
+
+    lastX = x;
+    lastY = y;
+
+    cam->rotation.y += xoffset;
+    cam->rotation.x += yoffset;
+
+    // clamp pitch
+    if (cam->rotation.x > 89.0f) cam->rotation.x = 89.0f;
+    if (cam->rotation.x < -89.0f) cam->rotation.x = -89.0f;
 }

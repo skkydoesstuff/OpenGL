@@ -13,10 +13,9 @@ void App::imguiRender() {
     ImGui_ImplGlfw_NewFrame();
     ImGui::NewFrame();
 
-    Model* model = scene.getModel("cube");
+    Model* model = scene.getModel("tree");
 
-    ImGui::Begin("Info");
-    ImGui::Text("%.1f FPS", this->io.Framerate);
+    ImGui::Begin("Model");
     ImGui::SliderFloat3("Rotation", glm::value_ptr(model->transform.rotation), -360.0f, 360.0f);   
     ImGui::End();
 
@@ -31,15 +30,6 @@ void App::imguiRender() {
         ImGui::SliderFloat("Glow Strength",       &this->settings.glowStrength,       0.1f, 10.0f);
         ImGui::SliderFloat("Vignette Strength",   &this->settings.vignetteStrength,   0.1f, 10.0f);
         ImGui::SliderFloat("Bright Boost",        &this->settings.brightBoost,        0.1f, 10.0f);
-
-        ImGui::EndTabItem();
-    }
-    if (ImGui::BeginTabItem("Outline Settings")) {
-        ImGui::Checkbox("Enabled##outline", &this->settings.outlineOn);
-        ImGui::SliderFloat("Normal Threshold", &this->settings.normThresh,    0.0f, 1.0f);
-        ImGui::SliderFloat("Depth Threshold",  &this->settings.depthThresh,   0.0f, .1f);
-        ImGui::SliderFloat("Edge Strength",    &this->settings.edgeStrength,  0.0f, 1.0f);
-        ImGui::SliderFloat("Edge Width",       &this->settings.edgeWidth,     0.1f, 5.0f);
 
         ImGui::EndTabItem();
     }
