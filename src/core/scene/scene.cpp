@@ -39,6 +39,10 @@ void Scene::createMesh(const std::string& tag,
         m->addVertexAttribute(2, 2, GL_FLOAT, 8 * sizeof(float), (const void*)(sizeof(float) * 6));
 
         m->submeshes = meshStructure.submeshes;
+
+        for (auto& [key, mat] : meshStructure.materials) {
+            this->createMaterial(key, mat.shininess, mat.diffuse, mat.specular);
+        }
     }
 }
 
@@ -48,11 +52,11 @@ void Scene::createTexture(const std::string& tag, const std::string& path) {
 
 void Scene::createMaterial(const std::string& tag,
                            const float shininess,
-                           const std::string& tex,
-                           const std::string& spec) {
+                           std::shared_ptr<Texture> tex,
+                           std::shared_ptr<Texture> spec) {
     std::shared_ptr<Material> mat = this->rm->materials.create(tag);
-    mat->diffuse = this->getTexture(tex);
-    mat->specular = this->getTexture(spec);
+    mat->diffuse = tex;
+    mat->specular = spec;
     mat->shininess = shininess;
 }
 

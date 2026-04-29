@@ -30,8 +30,8 @@ public:
 
     void createMaterial(const std::string& tag,
                         const float shininess,
-                        const std::string& tex,
-                        const std::string& spec = "");
+                        std::shared_ptr<Texture> tex,
+                        std::shared_ptr<Texture> spec);
 
     void createPass(const std::string& tag,
                     std::shared_ptr<Shader> shader,

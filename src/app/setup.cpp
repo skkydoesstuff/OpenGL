@@ -6,8 +6,6 @@
 #include "utils/fileUtils.hpp"
 #include "utils/stb_image.h"
 
-#include <iostream>
-
 void App::setup() {
     std::string exeDir = getExecutableDirectory();
     std::string assetDir = exeDir + "\\assets\\";
@@ -23,24 +21,6 @@ void App::setup() {
     scene.createShader("scanline", "blit.vert", "scanline.frag");
     scene.createShader("outline", "blit.vert", "outline.frag");
     scene.createShader("pixelated", "blit.vert", "pixelated.frag");
-
-    /*                                 
-    ----------- TEXTURE SETUP -----------
-    */          
-    scene.createTexture("foliage", assetDir + "textures\\foliage_baked_BC.jpg");
-    scene.createTexture("oreada", assetDir + "textures\\oreada_baked.jpg");
-    scene.createTexture("rocks", assetDir + "textures\\rocks_baked.jpg");
-    scene.createTexture("rope", assetDir + "textures\\rope_baked.jpg");
-    scene.createTexture("tree", assetDir + "textures\\tree_baked.jpg");
-
-    /*                                 
-    ----------- MATERIAL SETUP -----------
-    */     
-    scene.createMaterial("baked_flowers", 360.0f, "foliage");
-    scene.createMaterial("baked_oreada", 360.0f, "oreada");
-    scene.createMaterial("baked_rocks", 360.0f, "rocks");
-    scene.createMaterial("baked_rope", 360.0f, "rope");
-    scene.createMaterial("baked_tree", 360.0f, "tree");
 
     /*                                 
     ----------- MODEL SETUP -----------

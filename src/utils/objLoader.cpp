@@ -59,7 +59,7 @@ MeshStructure loadOBJ(const std::string& name) {
                 SubMesh sm;
                 sm.indexOffset = out_indices.size();
                 sm.indexCount = 0;
-                sm.materialName = (matID >= 0 && matID < materials.size())
+                sm.materialName = (matID < materials.size())
                     ? materials[matID].name
                     : "default";
 
