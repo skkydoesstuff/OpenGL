@@ -6,27 +6,24 @@
 #include "core/scene/model.hpp"
 #include "core/scene/light.hpp"
 
-struct TransparentDrawItem {
+struct DrawCommand {
     Mesh* mesh;
     const SubMesh* submesh;
     Material* material;
     glm::mat4 model;
-    float distance;
+
+    float depth;        // only meaningful for transparent
+    uint8_t flags = 0;      // opaque/transparent/etc
 };
 
-struct OpaqueDrawItem {
-    Mesh* mesh;
-    const SubMesh* submesh;
-    Material* material;
-    glm::mat4 model;
+enum DrawFlags : uint8_t {
+    Opaque      = 1 << 0,
+    Transparent = 1 << 1
 };
 
 struct FrameData {
-    std::vector<Model*> models;
+    std::vector<DrawCommand> commands;
     std::vector<Light*> lights;
-
-    std::vector<TransparentDrawItem> transparent;
-    std::vector<OpaqueDrawItem> opaque;
 };
 
 struct FrameSnapshot {

@@ -201,46 +201,56 @@ void Renderer::setDimensions(int width, int height) {
 }
 
 void Renderer::renderScene(const FrameSnapshot& frameSnapshot) {
-    this->beginScene();
+    beginScene();
 
-    glm::mat4 view = frameSnapshot.ctx.view;
-    glm::mat4 proj = frameSnapshot.ctx.projection;
+    auto& ctx = frameSnapshot.ctx;
+    auto& cmdList = frameSnapshot.frame.commands;
 
-    frameSnapshot.ctx.shader->bind();
-    frameSnapshot.ctx.shader->setUniformMat4("view", view);
-    frameSnapshot.ctx.shader->setUniformMat4("projection", proj);
-    frameSnapshot.ctx.shader->setUniformVec3("viewPos", frameSnapshot.ctx.cameraPosition);
-    
-    frameSnapshot.ctx.shader->bind();
+    ctx.shader->bind();
+
+    ctx.shader->setUniformMat4("view", ctx.view);
+    ctx.shader->setUniformMat4("projection", ctx.projection);
+    ctx.shader->setUniformVec3("viewPos", ctx.cameraPosition);
+
+    // upload lights once
     int i = 0;
-
     for (auto& light : frameSnapshot.frame.lights) {
-        light->upload(*frameSnapshot.ctx.shader, i);
-        i++;
+        light->upload(*ctx.shader, i++);
+    }
+    ctx.shader->setUniformInt("uNumLights", frameSnapshot.frame.lights.size());
+
+    // -------------------------
+    // OPAQUE FIRST (no blending)
+    // -------------------------
+    for (auto& cmd : cmdList) {
+        if (cmd.flags & DrawFlags::Transparent)
+            continue;
+
+        ctx.shader->setUniformMat4("model", cmd.model);
+
+        cmd.material->bind(*ctx.shader);
+        cmd.mesh->drawSubMesh(*cmd.submesh);
     }
 
-    frameSnapshot.ctx.shader->setUniformInt("uNumLights", frameSnapshot.frame.lights.size());
-    
-    for (auto& item : frameSnapshot.frame.opaque) {
-        frameSnapshot.ctx.shader->bind();
-        frameSnapshot.ctx.shader->setUniformMat4("model", item.model);
-
-        item.material->bind(*frameSnapshot.ctx.shader);
-        item.mesh->drawSubMesh(*item.submesh);
-    }
-
+    // -------------------------
+    // TRANSPARENT PASS
+    // -------------------------
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     glDepthMask(GL_FALSE);
-    for (auto& tdi : frameSnapshot.frame.transparent) {
-        frameSnapshot.ctx.shader->bind();
-        frameSnapshot.ctx.shader->setUniformMat4("model", tdi.model);
 
-        tdi.material->bind(*frameSnapshot.ctx.shader);
-        tdi.mesh->drawSubMesh(*tdi.submesh);
+    for (auto& cmd : cmdList) {
+        if (!(cmd.flags & DrawFlags::Transparent))
+            continue;
+
+        ctx.shader->setUniformMat4("model", cmd.model);
+
+        cmd.material->bind(*ctx.shader);
+        cmd.mesh->drawSubMesh(*cmd.submesh);
     }
+
     glDepthMask(GL_TRUE);
     glDisable(GL_BLEND);
 
-    this->endScene();
+    endScene();
 }

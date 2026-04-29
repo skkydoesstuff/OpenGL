@@ -156,39 +156,35 @@ static float computeTransparentDepth(
 FrameData Scene::buildFrame() {
     FrameData frame;
 
-    const glm::mat4 view = this->getCamera()->getView();
+    const glm::mat4 view = getCamera()->getView();
 
-    for (Model* m : this->rm->models.values()) {
+    for (Model* m : rm->models.values()) {
         m->updateModelMatrix();
 
-        for (SubMesh& sm : m->mesh->submeshes) {
-            glm::mat4 model = m->getModelMatrix();
-            if (sm.renderType == RenderType::Transparent) {
-                float dist = computeTransparentDepth(
-                    model,
-                    view,
-                    sm.boundsCenter
-                );
+        glm::mat4 model = m->getModelMatrix();
 
-                frame.transparent.push_back({
-                    m->mesh.get(),
-                    &sm,
-                    sm.material,
-                    model,
-                    dist
-                });
+        for (SubMesh& sm : m->mesh->submeshes) {
+            Material* mat = sm.material;
+            if (!mat) continue;
+
+            DrawCommand cmd;
+            cmd.mesh = m->mesh.get();
+            cmd.submesh = &sm;
+            cmd.material = mat;
+            cmd.model = model;
+
+            if (sm.renderType == RenderType::Transparent) {
+                cmd.flags = Transparent;
+                cmd.depth = computeTransparentDepth(model, view, sm.boundsCenter);
             } else {
-                frame.opaque.push_back({
-                    m->mesh.get(),
-                    &sm,
-                    sm.material,
-                    model
-                });
+                cmd.flags = Opaque;
             }
+
+            frame.commands.push_back(cmd);
         }
     }
 
-    for (Light* l : this->rm->lights.values())
+    for (Light* l : rm->lights.values())
         frame.lights.push_back(l);
 
     return frame;
