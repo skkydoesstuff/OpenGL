@@ -26,6 +26,30 @@ Mesh::~Mesh() {
     glDeleteVertexArrays(1, &VAO);
 }
 
+void Mesh::computeBounds(SubMesh& sm) {
+    glm::vec3 min( FLT_MAX);
+    glm::vec3 max(-FLT_MAX);
+
+    for (uint32_t i = 0; i < sm.indexCount; i++) {
+        uint32_t idx = is[sm.indexOffset + i];
+
+        uint32_t vStart = idx * stride;
+
+        glm::vec3 pos(
+            vs[vStart + 0],
+            vs[vStart + 1],
+            vs[vStart + 2]
+        );
+
+        min = glm::min(min, pos);
+        max = glm::max(max, pos);
+    }
+
+    sm.boundsMin = min;
+    sm.boundsMax = max;
+    sm.boundsCenter = (min + max) * 0.5f;
+}
+
 void Mesh::addVertexAttribute(uint32_t index, uint32_t attribSize, unsigned int attribType, GLsizei stride, const void* offset) {
     this->bindVAO();
     glBindBuffer(GL_ARRAY_BUFFER, this->VBO); // ← REQUIRED

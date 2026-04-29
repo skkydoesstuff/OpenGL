@@ -18,6 +18,7 @@ uniform sampler2D uDiffuseMap;
 uniform sampler2D uSpecularMap;
 uniform float uHasSpecularMap;
 uniform float uShininess;
+uniform float uOpacity;
 
 uniform vec3 viewPos;
 
@@ -63,6 +64,6 @@ void main() {
     for (int i = 0; i < uNumLights; i++)
         result += calcLight(lights[i], N, viewDir, diffuseTex, specularTex);
 
-    gColor = vec4(result, 1.0);
+    gColor = vec4(result, uOpacity);
     gNormal = vec4(N * 0.5 + 0.5, 1.0);
 }

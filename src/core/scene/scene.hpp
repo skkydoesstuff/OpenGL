@@ -50,19 +50,18 @@ public:
                          float zNear,
                          float zFar);
                        
-    Renderer* createRenderer(const std::string& tag);
+    Renderer* createRenderer();
     
     std::shared_ptr<Shader> getShader(const std::string& tag);
     std::shared_ptr<Mesh> getMesh(const std::string& tag);
     std::shared_ptr<Texture> getTexture(const std::string& tag);
     std::shared_ptr<Material> getMaterial(const std::string& tag);
     std::shared_ptr<PostProcessPass> getPass(const std::string& tag);
-    
 
     Model* getModel(const std::string& tag);
     Light* getLight(const std::string& tag);
     Camera* getCamera();
-    Renderer* getRenderer(const std::string& tag);
+    Renderer* getRenderer();
 
     int getLightCount();
     void uploadCameraData(const std::string& shaderTag);
@@ -77,8 +76,17 @@ private:
     std::unique_ptr<ResourceManager> rm;
     std::unordered_map<std::string, std::unique_ptr<Model>> models;
     std::unordered_map<std::string, std::unique_ptr<Light>> lights;
-    //std::unordered_map<std::string, std::unique_ptr<Camera>> cameras;
-    std::unordered_map<std::string, std::unique_ptr<Renderer>> renderers;
 
+    struct TransparentDrawItem {
+        Mesh* mesh;
+        const SubMesh* submesh;
+        std::shared_ptr<Material> material;
+        glm::mat4 model;
+        float distance;
+    };
+
+    std::vector<TransparentDrawItem> transparentItems;
+
+    Renderer* renderer;
     Camera* cam;
 };

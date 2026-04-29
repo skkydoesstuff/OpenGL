@@ -6,6 +6,8 @@
 
 #include "utils/objLoader.hpp"
 
+#include <algorithm>
+
 Scene::Scene() {
     this->rm = std::make_unique<ResourceManager>();
 }
@@ -39,6 +41,10 @@ void Scene::createMesh(const std::string& tag,
         m->addVertexAttribute(2, 2, GL_FLOAT, 8 * sizeof(float), (const void*)(sizeof(float) * 6));
 
         m->submeshes = meshStructure.submeshes;
+
+        for (auto& sm : m->submeshes) {
+            m->computeBounds(sm);
+        }
 
         for (auto& [key, mat] : meshStructure.materials) {
             this->createMaterial(key, mat.shininess, mat.diffuse, mat.specular);
@@ -101,28 +107,14 @@ Camera* Scene::createCamera(float fovInRadians,
                             float aspectRatio,
                             float zNear,
                             float zFar) {
-
-    /*
-    std::unique_ptr<Camera> camera = std::make_unique<Camera>(fovInRadians, aspectRatio, zNear, zFar);
-    Camera* ptr = camera.get();
-
-    cameras[tag] = std::move(camera);
-
-    return ptr;
-    */
-
     this->cam = new Camera(fovInRadians, aspectRatio, zNear, zFar);
     return this->cam;
 }
 
-Renderer* Scene::createRenderer(const std::string& tag) {
+Renderer* Scene::createRenderer() {
+    this->renderer = new Renderer();
 
-    std::unique_ptr<Renderer> renderer = std::make_unique<Renderer>();
-    Renderer* ptr = renderer.get();
-
-    renderers[tag] = std::move(renderer);
-
-    return ptr;
+    return this->renderer;
 }
 
 std::shared_ptr<Shader> Scene::getShader(const std::string& tag) {
@@ -172,12 +164,8 @@ Camera* Scene::getCamera() {
     return this->cam;
 }
 
-Renderer* Scene::getRenderer(const std::string& tag) {
-    auto it = this->renderers.find(tag);
-    if (it == this->renderers.end())
-        return nullptr;
-
-    return it->second.get();
+Renderer* Scene::getRenderer() {
+    return this->renderer;
 }
 
 int Scene::getLightCount() {
@@ -208,12 +196,78 @@ void Scene::uploadCameraData(const std::string& shaderTag) {
     shader->setUniformVec3("viewPos", cam->position);
 }
 
-void Scene::drawScene(const std::string& shaderTag) { 
+static float computeTransparentDepth(
+    const glm::mat4& model,
+    const glm::mat4& view,
+    const glm::vec3& localCenter = glm::vec3(0.0f)
+) {
+    glm::vec4 worldPos = model * glm::vec4(localCenter, 1.0f);
+    glm::vec4 viewPos  = view * worldPos;
+
+    return -viewPos.z; // depth along camera forward axis
+}
+
+void Scene::drawScene(const std::string& shaderTag) {
     this->uploadCameraData(shaderTag);
     this->uploadLightData(shaderTag);
 
+    std::shared_ptr<Shader> shader = getShader(shaderTag);
+
+    auto getMat = [&](const std::string& k) {
+        return this->rm->materials.get(k);
+    };
+
+    std::vector<TransparentDrawItem> transparentItems;
+
+    glm::mat4 view = this->getCamera()->getView();
+    // -------------------------
+    // PASS 1: OPAQUE + COLLECT TRANSPARENT
+    // -------------------------
     for (auto& [key, model] : this->models) {
         model->updateModelMatrix();
-        model->draw([&](const std::string& k){return this->rm->materials.get(k);});
+
+        // draw opaque parts
+        model->draw(DrawMode::Opaque, getMat);
+
+        // collect transparent parts
+        for (const auto& sm : model->mesh->submeshes) {
+            auto mat = getMat(sm.materialName);
+            if (!mat || mat->opacity >= 1.0f)
+                continue;
+
+            float dist = computeTransparentDepth(
+                model->model,
+                view,
+                sm.boundsCenter
+            );
+
+            transparentItems.push_back({
+                model->mesh.get(),
+                &sm,
+                mat,
+                model->model,
+                dist
+            });
+        }
     }
+
+    std::sort(transparentItems.begin(), transparentItems.end(),
+    [](const TransparentDrawItem& a, const TransparentDrawItem& b) {
+        return a.distance > b.distance; // back → front
+    });
+
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    glDepthMask(GL_FALSE);
+
+    for (auto& item : transparentItems) {
+        shader->bind();
+        shader->setUniformMat4("model", item.model);
+
+        item.material->bind(*shader);
+        item.mesh->drawSubMesh(*item.submesh);
+    }
+
+    glDepthMask(GL_TRUE);
+    glDisable(GL_BLEND);
 }

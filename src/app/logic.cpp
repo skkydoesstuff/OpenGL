@@ -4,7 +4,7 @@
 #include <GLFW/glfw3.h>
 
 void App::logicLoop() {
-    Renderer* r = scene.getRenderer("main");
+    Renderer* r = this->scene.getRenderer();
 
     int fbWidth, fbHeight;
     glfwGetFramebufferSize(window, &fbWidth, &fbHeight);
@@ -36,7 +36,7 @@ void App::logicLoop() {
         r->addPass(pixelated);
     }
 
-    Camera* cam = scene.getCamera();
+    Camera* cam = this->scene.getCamera();
     float speed = 0.05f;
     glm::vec3 forward;
     glm::vec3 right;

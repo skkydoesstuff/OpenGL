@@ -9,11 +9,11 @@
 
 
 void App::render() {
-    Renderer* r = scene.getRenderer("main");
+    Renderer* r = scene.getRenderer();
 
     r->beginScene();
 
     scene.drawScene("base");
-    
+
     r->endScene();
 }

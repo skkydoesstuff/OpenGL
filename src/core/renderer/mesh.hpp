@@ -1,6 +1,7 @@
 #pragma once
 
 #include <glad/glad.h>
+#include <glm/glm.hpp>
 #include <vector>
 #include <string>
 
@@ -8,6 +9,10 @@ struct SubMesh {
     uint32_t indexOffset;
     uint32_t indexCount;
     std::string materialName;
+
+    glm::vec3 boundsMin;
+    glm::vec3 boundsMax;
+    glm::vec3 boundsCenter;
 };
 
 class Mesh {
@@ -15,6 +20,8 @@ public:
     Mesh(std::vector<float> vertices, uint32_t stride, std::vector<unsigned int> indices = {});
     ~Mesh();
     
+    void computeBounds(SubMesh& sm);
+
     void addVertexAttribute(uint32_t index, uint32_t attribSize, unsigned int attribType, GLsizei stride, const void* offset);
 
     void draw() const;

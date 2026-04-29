@@ -12,8 +12,6 @@ void App::setup() {
     
     scene.createMesh("tree", {}, {}, "tree");
 
-    auto mesh = scene.getMesh("tree");
-
     /*                                 
     ----------- SHADER SETUP -----------
     */                                 
@@ -76,7 +74,7 @@ void App::setup() {
         {{"uPixelSize", this->settings.pixelSize}}
     );
 
-    auto r = scene.createRenderer("main");
+    auto r = scene.createRenderer();
     r->init(this->width, this->height);
 }
  

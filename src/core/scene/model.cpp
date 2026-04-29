@@ -27,19 +27,44 @@ void Model::updateModelMatrix() {
 }
 
 void Model::draw(
+    DrawMode mode,
     std::function<std::shared_ptr<Material>(const std::string&)> getMaterial
 ) {
     shader->bind();
     shader->setUniformMat4("model", model);
 
-    for (const auto& sm : mesh->submeshes) {
+    bool blendingEnabled = (mode == DrawMode::Transparent);
 
+    if (blendingEnabled) {
+        glEnable(GL_BLEND);
+        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+        glDepthMask(GL_FALSE);
+    } else {
+        glDisable(GL_BLEND);
+        glDepthMask(GL_TRUE);
+    }
+
+    for (const auto& sm : mesh->submeshes) {
         auto mat = getMaterial(sm.materialName);
 
-        if (mat) {
-            mat->bind(*shader);
-        }
+        if (!mat)
+            continue;
 
+        float opacity = mat->opacity;
+
+        // filter by mode
+        if (mode == DrawMode::Opaque && opacity < 1.0f)
+            continue;
+
+        if (mode == DrawMode::Transparent && opacity >= 1.0f)
+            continue;
+
+        mat->bind(*shader);
         mesh->drawSubMesh(sm);
+    }
+
+    if (blendingEnabled) {
+        glDepthMask(GL_TRUE);
+        glDisable(GL_BLEND);
     }
 }
