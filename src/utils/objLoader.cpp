@@ -136,7 +136,7 @@ MeshStructure loadOBJ(const std::string& name) {
         if (it != finalMaterials.end()) {
             sm.material = it->second;
             sm.renderType =
-                (sm.material->opacity < 1.0f)
+                (sm.material->hasOpacityMap || sm.material->opacityValue < 1.0f)
                 ? RenderType::Transparent
                 : RenderType::Opaque;
         }

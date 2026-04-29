@@ -71,23 +71,25 @@ void App::logicLoop() {
     forward = glm::normalize(forward);
     right = glm::normalize(glm::cross(forward, up));
 
-    if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
-        cam->position += forward * speed;
-
-    if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
-        cam->position -= forward * speed;
-
-    if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
-        cam->position -= right * speed;
-
-    if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
-        cam->position += right * speed;
-
-    if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS)
-        cam->position += up * speed;
-
-    if (glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS)
-        cam->position -= up * speed;
+    if (mouseLocked) {
+        if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
+            cam->position += forward * speed;
+    
+        if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
+            cam->position -= forward * speed;
+    
+        if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
+            cam->position -= right * speed;
+    
+        if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
+            cam->position += right * speed;
+    
+        if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS)
+            cam->position += up * speed;
+    
+        if (glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS)
+            cam->position -= up * speed;
+    }
 
     static double lastX = 0.0, lastY = 0.0;
 

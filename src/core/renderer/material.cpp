@@ -22,5 +22,5 @@ void Material::bind(const Shader& shader) const {
     }
 
     shader.setUniformFloat("uShininess", shininess);
-    shader.setUniformFloat("uOpacity", opacity);
+    shader.setUniformFloat("uOpacity", opacityValue);
 }

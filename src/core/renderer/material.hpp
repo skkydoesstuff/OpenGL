@@ -9,8 +9,10 @@ class Material {
 public:
     std::shared_ptr<Texture> diffuse;
     std::shared_ptr<Texture> specular;
+    std::shared_ptr<Texture> opacity;
+    bool hasOpacityMap = false;
     float shininess = 32.0f;
-    float opacity = 1.0f;
+    float opacityValue = 1.0f;
 
     void bind(const Shader& shader) const;
 }; 

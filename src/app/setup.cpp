@@ -10,7 +10,7 @@ void App::setup() {
     std::string exeDir = getExecutableDirectory();
     std::string assetDir = exeDir + "\\assets\\";
     
-    scene.createMesh("tree", {}, {}, "tree");
+    scene.createMesh("tree", {}, {}, "seafront");
 
     /*                                 
     ----------- SHADER SETUP -----------
@@ -29,9 +29,9 @@ void App::setup() {
     c->transform.scale = glm::vec3(0.50f);
 
     auto l = scene.createLight("light");
-    l->position  = glm::vec3(0.0f, 5.0f, 0.0f);
-    l->ambient  = glm::vec3(0.15f, 0.15f, 0.15f);
-    l->diffuse  = glm::vec3(3.0f);
+    l->position  = glm::vec3(1.7f, 2.3f, -2.9f);
+    l->ambient  = glm::vec3(0.15f, 0.15f, 0.0f);
+    l->diffuse  = glm::vec3(2.0f, 2.0f, 2.0f);
     l->specular  = glm::vec3(0.5f, 0.5f, 0.5f);
     l->constant  = 1.0f;
     l->linear    = 0.0;

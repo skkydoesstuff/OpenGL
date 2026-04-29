@@ -17,6 +17,9 @@ uniform int uNumLights;
 uniform sampler2D uDiffuseMap;
 uniform sampler2D uSpecularMap;
 uniform float uHasSpecularMap;
+uniform sampler2D uOpacityMap;
+
+float uOpacityMapStrength = 1.0;
 uniform float uShininess;
 uniform float uOpacity;
 
@@ -24,7 +27,7 @@ uniform vec3 viewPos;
 
 in vec3 normal;
 in vec3 fragPos;
-in vec2 texCoord;
+in vec2 vTexCoord;
 
 layout(location = 0) out vec4 gColor;
 layout(location = 1) out vec4 gNormal;
@@ -53,17 +56,24 @@ void main() {
     vec3 N = normalize(normal);
     vec3 viewDir = normalize(viewPos - fragPos);
 
-    vec3 diffuseTex = texture(uDiffuseMap, texCoord).rgb;
+    vec3 diffuseTex = texture(uDiffuseMap, vTexCoord).rgb;
 
     vec3 specularTex = vec3(1.0);
     if (uHasSpecularMap > 0.5)
-        specularTex = texture(uSpecularMap, texCoord).rgb;
+        specularTex = texture(uSpecularMap, vTexCoord).rgb;
+
+    float alpha = uOpacity;
+
+    alpha *= uOpacityMapStrength * texture(uOpacityMap, vTexCoord).r;
+
+    if (alpha < 0.1)
+        discard;
 
     vec3 result = vec3(0.0);
 
     for (int i = 0; i < uNumLights; i++)
         result += calcLight(lights[i], N, viewDir, diffuseTex, specularTex);
 
-    gColor = vec4(result, uOpacity);
+    gColor = vec4(result.rgb, alpha);
     gNormal = vec4(N * 0.5 + 0.5, 1.0);
 }

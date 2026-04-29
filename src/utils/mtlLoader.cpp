@@ -52,6 +52,16 @@ MTLLoader::load(const std::string& path) {
                 std::make_shared<Texture>(fullPath);
         }
 
+        else if (type == "map_d") {
+            std::string tex;
+            iss >> tex;
+
+            std::string fullPath = assetDir + tex;
+
+            materials[current]->opacity = std::make_shared<Texture>(fullPath);
+            materials[current]->hasOpacityMap = true;
+        }
+
         else if (type == "Ns") {
             float ns;
             iss >> ns;
@@ -61,13 +71,13 @@ MTLLoader::load(const std::string& path) {
         else if (type == "d") {
             float d;
             iss >> d;
-            materials[current]->opacity = d;
+            materials[current]->opacityValue = d;
         }
 
         else if (type == "Tr") {
             float tr;
             iss >> tr;
-            materials[current]->opacity = -tr;
+            materials[current]->opacityValue = 1.0f - tr;
         }
     }
 

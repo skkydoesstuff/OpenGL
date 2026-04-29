@@ -7,11 +7,15 @@
 #include "imgui_impl_opengl3.h"
 
 void App::imguiRender() {
+    Camera* cam = scene.getCamera();
+    
     ImGui_ImplOpenGL3_NewFrame();
     ImGui_ImplGlfw_NewFrame();
     ImGui::NewFrame();
 
     ImGui::Begin("Shaders");
+    ImGui::Text("Camera Position: x:%f y:%f z:%f", cam->position.x, cam->position.y, cam->position.z);
+
     ImGui::BeginTabBar("Shader Options");
 
     if (ImGui::BeginTabItem("Scanline Settings")) {
