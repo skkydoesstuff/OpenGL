@@ -7,13 +7,10 @@
 #include <imgui_impl_opengl3.h>
 #include <utils/stb_image.h>
 
-
 void App::render() {
     Renderer* r = scene.getRenderer();
 
-    r->beginScene();
+    FrameSnapshot fs = scene.buildSnapshot("base");
 
-    scene.drawScene("base");
-
-    r->endScene();
+    r->renderScene(fs);
 }

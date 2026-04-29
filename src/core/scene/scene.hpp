@@ -12,10 +12,12 @@
 #include "core/renderer/renderer.hpp"
 #include "core/renderer/postprocess_pass.hpp"
 #include "core/renderer/material.hpp"
+#include "core/renderer/frameData.hpp"
 
 class Scene {
 public:
     Scene();
+    ~Scene();
 
     void createShader(const std::string& tag,
                       const std::string& vert,
@@ -40,7 +42,6 @@ public:
                     const std::string& output = "");
         
     Model* createModel(const std::string& tag,
-                       const std::string& shaderTag,
                        const std::string& meshTag);
 
     Light* createLight(const std::string& tag);
@@ -63,30 +64,19 @@ public:
     Camera* getCamera();
     Renderer* getRenderer();
 
-    int getLightCount();
-    void uploadCameraData(const std::string& shaderTag);
-    void uploadLightData(const std::string& shaderTag);
+    FrameSnapshot buildSnapshot(const std::string& shaderTag);
 
-    void drawScene(const std::string& shaderTag);
-
-    ~Scene() = default;
     Scene(const Scene&) = delete;
     Scene& operator=(const Scene &) = delete;
 private:
     std::unique_ptr<ResourceManager> rm;
+
     std::unordered_map<std::string, std::unique_ptr<Model>> models;
     std::unordered_map<std::string, std::unique_ptr<Light>> lights;
 
-    struct TransparentDrawItem {
-        Mesh* mesh;
-        const SubMesh* submesh;
-        std::shared_ptr<Material> material;
-        glm::mat4 model;
-        float distance;
-    };
-
-    std::vector<TransparentDrawItem> transparentItems;
-
     Renderer* renderer;
     Camera* cam;
+
+    FrameData buildFrame();
+    RenderContext buildContext(std::shared_ptr<Shader> shader);
 };

@@ -19,15 +19,12 @@ class Model {
 public:
     Transform transform;
     std::shared_ptr<Mesh> mesh;
-    glm::mat4 model;
-
-    Model(std::shared_ptr<Shader> shader, std::shared_ptr<Mesh> mesh);
-
+    
+    Model(std::shared_ptr<Mesh> mesh);
+    
     void updateModelMatrix();
-    void draw(
-        DrawMode mode,
-        std::function<std::shared_ptr<Material>(const std::string&)> getMaterial
-    );
+    glm::mat4 getModelMatrix();
+    
 private:
-    std::shared_ptr<Shader> shader;
+    glm::mat4 model;
 };

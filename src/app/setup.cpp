@@ -23,7 +23,7 @@ void App::setup() {
     /*                                 
     ----------- MODEL SETUP -----------
     */     
-    auto c = scene.createModel("tree", "base", "tree");
+    auto c = scene.createModel("tree", "tree");
     c->transform.rotation = glm::vec3(.0f);
     c->transform.position = glm::vec3(0, 0, 0);
     c->transform.scale = glm::vec3(0.50f);

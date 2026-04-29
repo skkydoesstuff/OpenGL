@@ -8,8 +8,7 @@
 
 #include <memory>
 
-Model::Model(std::shared_ptr<Shader> shader, std::shared_ptr<Mesh> mesh) {
-    this->shader = std::move(shader);
+Model::Model(std::shared_ptr<Mesh> mesh) {
     this->mesh = std::move(mesh);
 
     this->transform.position = glm::vec3(0.0f);
@@ -26,45 +25,6 @@ void Model::updateModelMatrix() {
     this->model = glm::scale(this->model, this->transform.scale);
 }
 
-void Model::draw(
-    DrawMode mode,
-    std::function<std::shared_ptr<Material>(const std::string&)> getMaterial
-) {
-    shader->bind();
-    shader->setUniformMat4("model", model);
-
-    bool blendingEnabled = (mode == DrawMode::Transparent);
-
-    if (blendingEnabled) {
-        glEnable(GL_BLEND);
-        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-        glDepthMask(GL_FALSE);
-    } else {
-        glDisable(GL_BLEND);
-        glDepthMask(GL_TRUE);
-    }
-
-    for (const auto& sm : mesh->submeshes) {
-        auto mat = getMaterial(sm.materialName);
-
-        if (!mat)
-            continue;
-
-        float opacity = mat->opacity;
-
-        // filter by mode
-        if (mode == DrawMode::Opaque && opacity < 1.0f)
-            continue;
-
-        if (mode == DrawMode::Transparent && opacity >= 1.0f)
-            continue;
-
-        mat->bind(*shader);
-        mesh->drawSubMesh(sm);
-    }
-
-    if (blendingEnabled) {
-        glDepthMask(GL_TRUE);
-        glDisable(GL_BLEND);
-    }
+glm::mat4 Model::getModelMatrix() {
+    return this->model;
 }

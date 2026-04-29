@@ -7,9 +7,15 @@
 #include "utils/objLoader.hpp"
 
 #include <algorithm>
+#include <iostream>
 
 Scene::Scene() {
     this->rm = std::make_unique<ResourceManager>();
+}
+
+Scene::~Scene() {
+    delete this->renderer;
+    delete this->cam;
 }
 
 void Scene::createShader(const std::string& tag,
@@ -79,14 +85,12 @@ void Scene::createPass(const std::string& tag,
     pass->saveOutputAs = std::move(output);
 }
 
-/// test
 Model* Scene::createModel(const std::string& tag,
-                          const std::string& shaderTag,
-                          const std::string& meshTag) {
-    std::shared_ptr<Shader> s = this->rm->shaders.get(shaderTag);
+                          const std::string& meshTag) 
+{
     std::shared_ptr<Mesh> m = this->rm->meshes.get(meshTag);
-    
-    std::unique_ptr<Model> model = std::make_unique<Model>(s, m);
+
+    std::unique_ptr<Model> model = std::make_unique<Model>(m);
     Model* ptr = model.get();
 
     models[tag] = std::move(model);
@@ -168,34 +172,6 @@ Renderer* Scene::getRenderer() {
     return this->renderer;
 }
 
-int Scene::getLightCount() {
-    return this->lights.size();
-}
-
-void Scene::uploadLightData(const std::string& shaderTag) {
-    std::shared_ptr<Shader> shader = this->getShader(shaderTag);
-    shader->bind();
-    int i = 0;
-
-    for (auto& [key, light] : this->lights) {
-        light->upload(*shader, i);
-        i++;
-    }
-
-    shader->setUniformInt("uNumLights", this->lights.size());
-}
-
-void Scene::uploadCameraData(const std::string& shaderTag) {
-    std::shared_ptr<Shader> shader = this->getShader(shaderTag);
-    glm::mat4 view = this->cam->getView();
-    glm::mat4 proj = this->cam->getProjection();
-
-    shader->bind();
-    shader->setUniformMat4("view", view);
-    shader->setUniformMat4("projection", proj);
-    shader->setUniformVec3("viewPos", cam->position);
-}
-
 static float computeTransparentDepth(
     const glm::mat4& model,
     const glm::mat4& view,
@@ -207,67 +183,61 @@ static float computeTransparentDepth(
     return -viewPos.z; // depth along camera forward axis
 }
 
-void Scene::drawScene(const std::string& shaderTag) {
-    this->uploadCameraData(shaderTag);
-    this->uploadLightData(shaderTag);
+FrameData Scene::buildFrame() {
+    FrameData frame;
 
-    std::shared_ptr<Shader> shader = getShader(shaderTag);
+    const glm::mat4 view = this->getCamera()->getView();
 
-    auto getMat = [&](const std::string& k) {
-        return this->rm->materials.get(k);
-    };
+    for (auto& [k, m] : models) {
+        m->updateModelMatrix();
 
-    std::vector<TransparentDrawItem> transparentItems;
+        for (auto& sm : m->mesh->submeshes) {
+            auto mat = this->getMaterial(sm.materialName);
+            if (!mat) continue;
 
-    glm::mat4 view = this->getCamera()->getView();
-    // -------------------------
-    // PASS 1: OPAQUE + COLLECT TRANSPARENT
-    // -------------------------
-    for (auto& [key, model] : this->models) {
-        model->updateModelMatrix();
+            if (mat->opacity < 1.0f) {
+                float dist = computeTransparentDepth(
+                    m->getModelMatrix(),
+                    view,
+                    sm.boundsCenter
+                );
 
-        // draw opaque parts
-        model->draw(DrawMode::Opaque, getMat);
-
-        // collect transparent parts
-        for (const auto& sm : model->mesh->submeshes) {
-            auto mat = getMat(sm.materialName);
-            if (!mat || mat->opacity >= 1.0f)
-                continue;
-
-            float dist = computeTransparentDepth(
-                model->model,
-                view,
-                sm.boundsCenter
-            );
-
-            transparentItems.push_back({
-                model->mesh.get(),
-                &sm,
-                mat,
-                model->model,
-                dist
-            });
+                frame.transparent.push_back({
+                    m->mesh.get(),
+                    &sm,
+                    mat,
+                    m->getModelMatrix(),
+                    dist
+                });
+            } else {
+                frame.opaque.push_back({
+                    m->mesh.get(),
+                    &sm,
+                    mat,
+                    m->getModelMatrix()
+                });
+            }
         }
     }
 
-    std::sort(transparentItems.begin(), transparentItems.end(),
-    [](const TransparentDrawItem& a, const TransparentDrawItem& b) {
-        return a.distance > b.distance; // back → front
-    });
+    for (auto& [k, l] : lights)
+        frame.lights.push_back(l.get());
 
-    glEnable(GL_BLEND);
-    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-    glDepthMask(GL_FALSE);
+    return frame;
+}
 
-    for (auto& item : transparentItems) {
-        shader->bind();
-        shader->setUniformMat4("model", item.model);
+RenderContext Scene::buildContext(std::shared_ptr<Shader> shader) {
+    Camera* cam = this->getCamera();
 
-        item.material->bind(*shader);
-        item.mesh->drawSubMesh(*item.submesh);
-    }
+    RenderContext ctx{};
+    ctx.cameraPosition = cam->position;
+    ctx.projection = cam->getProjection();
+    ctx.view = cam->getView();
+    ctx.shader = shader;
 
-    glDepthMask(GL_TRUE);
-    glDisable(GL_BLEND);
+    return ctx;
+}
+
+FrameSnapshot Scene::buildSnapshot(const std::string& shaderTag) {
+    return {this->buildFrame(), this->buildContext(this->getShader(shaderTag))};
 }

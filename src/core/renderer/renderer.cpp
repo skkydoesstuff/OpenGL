@@ -11,6 +11,8 @@
 
 #include "core/renderer/mesh.hpp"
 #include "core/renderer/postprocess_pass.hpp"
+#include "core/renderer/frameData.hpp"
+#include "core/renderer/renderContext.hpp"
 
 #include <iostream>
 
@@ -196,4 +198,49 @@ void Renderer::setDimensions(int width, int height) {
     for (auto& [name, rt] : rts)
         rt.resize(width, height);
     glBindTexture(GL_TEXTURE_2D, 0);
+}
+
+void Renderer::renderScene(const FrameSnapshot& frameSnapshot) {
+    this->beginScene();
+
+    glm::mat4 view = frameSnapshot.ctx.view;
+    glm::mat4 proj = frameSnapshot.ctx.projection;
+
+    frameSnapshot.ctx.shader->bind();
+    frameSnapshot.ctx.shader->setUniformMat4("view", view);
+    frameSnapshot.ctx.shader->setUniformMat4("projection", proj);
+    frameSnapshot.ctx.shader->setUniformVec3("viewPos", frameSnapshot.ctx.cameraPosition);
+    
+    frameSnapshot.ctx.shader->bind();
+    int i = 0;
+
+    for (auto& light : frameSnapshot.frame.lights) {
+        light->upload(*frameSnapshot.ctx.shader, i);
+        i++;
+    }
+
+    frameSnapshot.ctx.shader->setUniformInt("uNumLights", frameSnapshot.frame.lights.size());
+    
+    for (auto& item : frameSnapshot.frame.opaque) {
+        frameSnapshot.ctx.shader->bind();
+        frameSnapshot.ctx.shader->setUniformMat4("model", item.model);
+
+        item.material->bind(*frameSnapshot.ctx.shader);
+        item.mesh->drawSubMesh(*item.submesh);
+    }
+
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    glDepthMask(GL_FALSE);
+    for (auto& tdi : frameSnapshot.frame.transparent) {
+        frameSnapshot.ctx.shader->bind();
+        frameSnapshot.ctx.shader->setUniformMat4("model", tdi.model);
+
+        tdi.material->bind(*frameSnapshot.ctx.shader);
+        tdi.mesh->drawSubMesh(*tdi.submesh);
+    }
+    glDepthMask(GL_TRUE);
+    glDisable(GL_BLEND);
+
+    this->endScene();
 }

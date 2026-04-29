@@ -3,6 +3,8 @@
 #include "core/renderer/mesh.hpp"
 #include "core/renderer/postprocess_pass.hpp"
 #include "core/renderer/renderTarget.hpp"
+#include "core/renderer/frameData.hpp"
+#include "core/renderer/renderContext.hpp"
 
 class Renderer {
 public:
@@ -19,21 +21,23 @@ public:
 
     void registerRT(const std::string& name, RTDesc desc);
     RenderTarget& getRT(const std::string& name);
-
-    void bindTex(int slot, GLuint tex);
-
+ 
     void init(int width, int height);
-    void beginScene();
-    void endScene();
     void addPass(std::shared_ptr<PostProcessPass> pass);
     void clearPasses();
-    void setPassUniform(size_t index, const std::string& name, const UniformValue& value);
     void setDimensions(int width, int height);
+
+    void renderScene(const FrameSnapshot& frame);
+
     int getWidth() { return this->width; }
     int getHeight() { return this->height; } // ← was returning width, bug fixed
     ~Renderer();
 private:
     static constexpr int msaaSamples = 4; // 2, 4, or 8
+
+    void bindTex(int slot, GLuint tex);
+    void beginScene();
+    void endScene();
 
     Shader* blitShader;
 
