@@ -6,18 +6,10 @@
 #include "imgui_impl_glfw.h"
 #include "imgui_impl_opengl3.h"
 
-#include "core/scene/model.hpp"
-
 void App::imguiRender() {
     ImGui_ImplOpenGL3_NewFrame();
     ImGui_ImplGlfw_NewFrame();
     ImGui::NewFrame();
-
-    Model* model = scene.getModel("tree");
-
-    ImGui::Begin("Model");
-    ImGui::SliderFloat3("Rotation", glm::value_ptr(model->transform.rotation), -360.0f, 360.0f);   
-    ImGui::End();
 
     ImGui::Begin("Shaders");
     ImGui::BeginTabBar("Shader Options");

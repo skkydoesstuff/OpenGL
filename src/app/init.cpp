@@ -35,6 +35,10 @@ App::App() {
     glfwMakeContextCurrent(this->window);
     glfwSwapInterval(1);
     
+    glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+    mouseLocked = true;
+    firstMouse = true;
+
     // load GLAD
     if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress)) {
         fprintf(stderr, "Failed to initialize GLAD\n");

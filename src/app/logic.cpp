@@ -36,6 +36,24 @@ void App::logicLoop() {
         r->addPass(pixelated);
     }
 
+    static bool escPressedLast = false;
+
+    bool escPressed = glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS;
+
+    if (escPressed && !escPressedLast) {
+        mouseLocked = !mouseLocked;
+
+        glfwSetInputMode(
+            window,
+            GLFW_CURSOR,
+            mouseLocked ? GLFW_CURSOR_DISABLED : GLFW_CURSOR_NORMAL
+        );
+
+        firstMouse = true; // prevents camera jump when re-locking
+    }
+
+    escPressedLast = escPressed;
+
     Camera* cam = this->scene.getCamera();
     float speed = 0.05f;
     glm::vec3 forward;
@@ -72,29 +90,31 @@ void App::logicLoop() {
         cam->position -= up * speed;
 
     static double lastX = 0.0, lastY = 0.0;
-    static bool first = true;
 
-    double x, y;
-    glfwGetCursorPos(window, &x, &y);
+    if (mouseLocked) {
+        double x, y;
+        glfwGetCursorPos(window, &x, &y);
 
-    if (first) {
+        if (firstMouse) {
+            lastX = x;
+            lastY = y;
+            firstMouse = false;
+        }
+
+        float sensitivity = 0.1f;
+
+        float xoffset = (x - lastX) * sensitivity;
+        float yoffset = (lastY - y) * sensitivity;
+
         lastX = x;
         lastY = y;
-        first = false;
+
+        cam->rotation.y += xoffset;
+        cam->rotation.x += yoffset;
+
+        if (cam->rotation.x > 89.0f) cam->rotation.x = 89.0f;
+        if (cam->rotation.x < -89.0f) cam->rotation.x = -89.0f;
+    } else {
+        firstMouse = true;
     }
-
-    float sensitivity = 0.1f;
-
-    float xoffset = (x - lastX) * sensitivity;
-    float yoffset = (lastY - y) * sensitivity;
-
-    lastX = x;
-    lastY = y;
-
-    cam->rotation.y += xoffset;
-    cam->rotation.x += yoffset;
-
-    // clamp pitch
-    if (cam->rotation.x > 89.0f) cam->rotation.x = 89.0f;
-    if (cam->rotation.x < -89.0f) cam->rotation.x = -89.0f;
 }
