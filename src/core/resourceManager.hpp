@@ -6,6 +6,8 @@
 #include "core/renderer/texture.hpp"
 #include "core/renderer/material.hpp"
 #include "core/renderer/postprocess_pass.hpp"
+#include "core/scene/model.hpp"
+#include "core/scene/light.hpp"
 
 class ResourceManager {
 public:
@@ -13,5 +15,7 @@ public:
     ResourceStore<Shader> shaders;
     ResourceStore<Texture> textures;
     ResourceStore<Material> materials;
-    ResourceStore<PostProcessPass> passes;
+    UniqueResourceStore<PostProcessPass> passes;
+    UniqueResourceStore<Model> models;
+    UniqueResourceStore<Light> lights;
 };

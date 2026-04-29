@@ -4,13 +4,13 @@
 #include <fstream>
 #include <iostream>
 
-std::unordered_map<std::string, Material>
+std::unordered_map<std::string, Material*>
 MTLLoader::load(const std::string& path) {
 
     static std::string exeDir = getExecutableDirectory();
     static std::string assetDir = exeDir + "\\assets\\";
 
-    std::unordered_map<std::string, Material> materials;
+    std::unordered_map<std::string, Material*> materials;
 
     std::ifstream file(path);
     if (!file.is_open()) {
@@ -29,7 +29,7 @@ MTLLoader::load(const std::string& path) {
 
         if (type == "newmtl") {
             iss >> current;
-            materials[current] = Material{};
+            materials[current] = new Material();
         }
 
         else if (type == "map_Kd") {
@@ -38,7 +38,7 @@ MTLLoader::load(const std::string& path) {
 
             std::string fullPath = assetDir + tex;
 
-            materials[current].diffuse =
+            materials[current]->diffuse =
                 std::make_shared<Texture>(fullPath);
         }
 
@@ -48,14 +48,26 @@ MTLLoader::load(const std::string& path) {
 
             std::string fullPath = assetDir + tex;
 
-            materials[current].specular =
+            materials[current]->specular =
                 std::make_shared<Texture>(fullPath);
         }
 
         else if (type == "Ns") {
             float ns;
             iss >> ns;
-            materials[current].shininess = ns;
+            materials[current]->shininess = ns;
+        }
+
+        else if (type == "d") {
+            float d;
+            iss >> d;
+            materials[current]->opacity = d;
+        }
+
+        else if (type == "Tr") {
+            float tr;
+            iss >> tr;
+            materials[current]->opacity = -tr;
         }
     }
 

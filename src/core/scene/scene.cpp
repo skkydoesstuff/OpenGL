@@ -13,11 +13,6 @@ Scene::Scene() {
     this->rm = std::make_unique<ResourceManager>();
 }
 
-Scene::~Scene() {
-    delete this->renderer;
-    delete this->cam;
-}
-
 void Scene::createShader(const std::string& tag,
                       const std::string& vert,
                       const std::string& frag) {
@@ -53,7 +48,7 @@ void Scene::createMesh(const std::string& tag,
         }
 
         for (auto& [key, mat] : meshStructure.materials) {
-            this->createMaterial(key, mat.shininess, mat.diffuse, mat.specular);
+            this->createMaterial(key, mat->shininess, mat->diffuse, mat->specular);
         }
     }
 }
@@ -78,7 +73,7 @@ void Scene::createPass(const std::string& tag,
                        std::unordered_map<std::string, std::string> extraTextures,
                        const std::string& output) {
     
-    std::shared_ptr<PostProcessPass> pass = this->rm->passes.create(tag);
+    PostProcessPass* pass = this->rm->passes.create(tag);
     pass->shader = shader;
     pass->uniforms = std::move(uniforms);
     pass->extraTextures = std::move(extraTextures);
@@ -90,35 +85,25 @@ Model* Scene::createModel(const std::string& tag,
 {
     std::shared_ptr<Mesh> m = this->rm->meshes.get(meshTag);
 
-    std::unique_ptr<Model> model = std::make_unique<Model>(m);
-    Model* ptr = model.get();
-
-    models[tag] = std::move(model);
-
-    return ptr;
+    return this->rm->models.create(tag, m);
 }
 
 Light* Scene::createLight(const std::string& tag) {
-    std::unique_ptr<Light> light = std::make_unique<Light>();
-    Light* ptr = light.get();
-
-    lights[tag] = std::move(light);
-
-    return ptr;
+    return this->rm->lights.create(tag);
 }
 
 Camera* Scene::createCamera(float fovInRadians,
                             float aspectRatio,
                             float zNear,
                             float zFar) {
-    this->cam = new Camera(fovInRadians, aspectRatio, zNear, zFar);
-    return this->cam;
+    this->cam = std::make_unique<Camera>(fovInRadians, aspectRatio, zNear, zFar);
+    return this->cam.get();
 }
 
 Renderer* Scene::createRenderer() {
-    this->renderer = new Renderer();
+    this->renderer = std::make_unique<Renderer>();
 
-    return this->renderer;
+    return this->renderer.get();
 }
 
 std::shared_ptr<Shader> Scene::getShader(const std::string& tag) {
@@ -137,39 +122,24 @@ std::shared_ptr<Material> Scene::getMaterial(const std::string& tag) {
     return this->rm->materials.get(tag);
 }
 
-std::shared_ptr<PostProcessPass> Scene::getPass(const std::string& tag) {
+PostProcessPass* Scene::getPass(const std::string& tag) {
     return this->rm->passes.get(tag);
 }
 
 Model* Scene::getModel(const std::string& tag) {
-    auto it = this->models.find(tag);
-    if (it == this->models.end())
-        return nullptr;
-
-    return it->second.get();
+    return this->rm->models.get(tag);
 }
 
 Light* Scene::getLight(const std::string& tag) {
-    auto it = this->lights.find(tag);
-    if (it == this->lights.end())
-        return nullptr;
-
-    return it->second.get();
+    return this->rm->lights.get(tag);
 }
 
 Camera* Scene::getCamera() {
-    /*
-    auto it = this->cameras.find(tag);
-    if (it == this->cameras.end())
-        return nullptr;
-
-    return it->second.get();
-    */
-    return this->cam;
+    return this->cam.get();
 }
 
 Renderer* Scene::getRenderer() {
-    return this->renderer;
+    return this->renderer.get();
 }
 
 static float computeTransparentDepth(
@@ -188,16 +158,14 @@ FrameData Scene::buildFrame() {
 
     const glm::mat4 view = this->getCamera()->getView();
 
-    for (auto& [k, m] : models) {
+    for (Model* m : this->rm->models.values()) {
         m->updateModelMatrix();
 
-        for (auto& sm : m->mesh->submeshes) {
-            auto mat = this->getMaterial(sm.materialName);
-            if (!mat) continue;
-
-            if (mat->opacity < 1.0f) {
+        for (SubMesh& sm : m->mesh->submeshes) {
+            glm::mat4 model = m->getModelMatrix();
+            if (sm.renderType == RenderType::Transparent) {
                 float dist = computeTransparentDepth(
-                    m->getModelMatrix(),
+                    model,
                     view,
                     sm.boundsCenter
                 );
@@ -205,23 +173,23 @@ FrameData Scene::buildFrame() {
                 frame.transparent.push_back({
                     m->mesh.get(),
                     &sm,
-                    mat,
-                    m->getModelMatrix(),
+                    sm.material,
+                    model,
                     dist
                 });
             } else {
                 frame.opaque.push_back({
                     m->mesh.get(),
                     &sm,
-                    mat,
-                    m->getModelMatrix()
+                    sm.material,
+                    model
                 });
             }
         }
     }
 
-    for (auto& [k, l] : lights)
-        frame.lights.push_back(l.get());
+    for (Light* l : this->rm->lights.values())
+        frame.lights.push_back(l);
 
     return frame;
 }

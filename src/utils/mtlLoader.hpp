@@ -2,11 +2,12 @@
 
 #include <string>
 #include <unordered_map>
+#include <memory>
 
 #include "core/renderer/material.hpp"
 
 class MTLLoader {
 public:
-    static std::unordered_map<std::string, Material>
+    static std::unordered_map<std::string, Material*>
     load(const std::string& path);
 };

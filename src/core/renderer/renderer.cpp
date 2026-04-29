@@ -42,7 +42,7 @@ void Renderer::renderFullscreenQuad() {
     this->fullscreenQuadMesh->draw();
 }
 
-void Renderer::addPass(std::shared_ptr<PostProcessPass> pass) {
+void Renderer::addPass(PostProcessPass* pass) {
     this->passes.push_back(pass);
 }
 

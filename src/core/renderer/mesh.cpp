@@ -24,6 +24,10 @@ Mesh::~Mesh() {
     glDeleteBuffers(1, &EBO);
     glDeleteBuffers(1, &VBO);
     glDeleteVertexArrays(1, &VAO);
+
+    for (auto sm : this->submeshes) {
+        delete sm.material;
+    }
 }
 
 void Mesh::computeBounds(SubMesh& sm) {

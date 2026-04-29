@@ -9,7 +9,7 @@ struct MeshStructure {
     std::vector<float> vertices;
     std::vector<unsigned int> indices;
     std::vector<SubMesh> submeshes;
-    std::unordered_map<std::string, Material> materials;
+    std::unordered_map<std::string, Material*> materials;
 };
 
 MeshStructure loadOBJ(const std::string& name);

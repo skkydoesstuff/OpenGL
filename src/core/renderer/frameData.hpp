@@ -9,7 +9,7 @@
 struct TransparentDrawItem {
     Mesh* mesh;
     const SubMesh* submesh;
-    std::shared_ptr<Material> material;
+    Material* material;
     glm::mat4 model;
     float distance;
 };
@@ -17,7 +17,7 @@ struct TransparentDrawItem {
 struct OpaqueDrawItem {
     Mesh* mesh;
     const SubMesh* submesh;
-    std::shared_ptr<Material> material;
+    Material* material;
     glm::mat4 model;
 };
 

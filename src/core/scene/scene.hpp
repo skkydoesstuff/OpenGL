@@ -17,7 +17,6 @@
 class Scene {
 public:
     Scene();
-    ~Scene();
 
     void createShader(const std::string& tag,
                       const std::string& vert,
@@ -57,25 +56,29 @@ public:
     std::shared_ptr<Mesh> getMesh(const std::string& tag);
     std::shared_ptr<Texture> getTexture(const std::string& tag);
     std::shared_ptr<Material> getMaterial(const std::string& tag);
-    std::shared_ptr<PostProcessPass> getPass(const std::string& tag);
-
+    PostProcessPass* getPass(const std::string& tag);
     Model* getModel(const std::string& tag);
     Light* getLight(const std::string& tag);
+    
+    // these are owned by the scene for now
     Camera* getCamera();
     Renderer* getRenderer();
 
     FrameSnapshot buildSnapshot(const std::string& shaderTag);
 
+    ~Scene() = default;
     Scene(const Scene&) = delete;
     Scene& operator=(const Scene &) = delete;
 private:
     std::unique_ptr<ResourceManager> rm;
 
-    std::unordered_map<std::string, std::unique_ptr<Model>> models;
-    std::unordered_map<std::string, std::unique_ptr<Light>> lights;
+    std::unique_ptr<Renderer> renderer;
+    std::unique_ptr<Camera> cam;
 
-    Renderer* renderer;
-    Camera* cam;
+    /*
+    std::vector<Model*> modelList;
+    std::vector<Light*> lightList;
+    */
 
     FrameData buildFrame();
     RenderContext buildContext(std::shared_ptr<Shader> shader);

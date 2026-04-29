@@ -30,7 +30,7 @@ private:
 
     bool mouseLocked = true;
     bool firstMouse = true;
-
+    
     void setup();
     void mainLoop();
     void logicLoop();

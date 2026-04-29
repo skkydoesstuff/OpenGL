@@ -3,6 +3,8 @@
 #include "utils/mtlLoader.hpp"
 #include "utils/tiny_obj_loader.h"
 
+#include "core/renderer/mesh.hpp"
+
 #include <glm/glm.hpp>
 
 #include <iostream>
@@ -24,7 +26,7 @@ MeshStructure loadOBJ(const std::string& name) {
 
     auto loadedMaterials = MTLLoader::load(mtlPath);
 
-    std::unordered_map<std::string, Material> finalMaterials;
+    std::unordered_map<std::string, Material*> finalMaterials;
 
     for (auto& m : materials) {
         auto it = loadedMaterials.find(m.name);
@@ -129,6 +131,16 @@ MeshStructure loadOBJ(const std::string& name) {
     }
 
     for (auto& [id, sm] : materialToSubmesh) {
+        auto it = finalMaterials.find(sm.materialName);
+
+        if (it != finalMaterials.end()) {
+            sm.material = it->second;
+            sm.renderType =
+                (sm.material->opacity < 1.0f)
+                ? RenderType::Transparent
+                : RenderType::Opaque;
+        }
+
         submeshes.push_back(sm);
     }
 

@@ -5,14 +5,24 @@
 #include <vector>
 #include <string>
 
+#include "core/renderer/material.hpp"
+
+enum class RenderType {
+    Opaque,
+    Transparent
+};
+
 struct SubMesh {
-    uint32_t indexOffset;
-    uint32_t indexCount;
-    std::string materialName;
+    uint32_t indexOffset = 0;
+    uint32_t indexCount = 0;
+    Material* material = nullptr;
+    std::string materialName = "";
 
     glm::vec3 boundsMin;
     glm::vec3 boundsMax;
     glm::vec3 boundsCenter;
+
+    RenderType renderType;
 };
 
 class Mesh {

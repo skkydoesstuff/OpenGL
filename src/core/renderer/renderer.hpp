@@ -23,7 +23,7 @@ public:
     RenderTarget& getRT(const std::string& name);
  
     void init(int width, int height);
-    void addPass(std::shared_ptr<PostProcessPass> pass);
+    void addPass(PostProcessPass* pass);
     void clearPasses();
     void setDimensions(int width, int height);
 
@@ -44,7 +44,7 @@ private:
     std::unordered_map<std::string, RTDesc>        rtDescs;
     std::unordered_map<std::string, RenderTarget>  rts;
 
-    std::vector<std::shared_ptr<PostProcessPass>> passes;
+    std::vector<PostProcessPass*> passes;
 
     int width, height;
 
