@@ -11,6 +11,10 @@ public:
     std::shared_ptr<Texture> specular;
     std::shared_ptr<Texture> opacity;
     bool hasOpacityMap = false;
+    
+    std::shared_ptr<Texture> normal;
+    bool hasNormalMap = false;
+
     float shininess = 32.0f;
     float opacityValue = 1.0f;
 

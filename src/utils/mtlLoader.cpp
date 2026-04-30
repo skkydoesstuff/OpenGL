@@ -62,6 +62,20 @@ MTLLoader::load(const std::string& path) {
             materials[current]->hasOpacityMap = true;
         }
 
+        else if (type == "map_Bump" || type == "bump") {
+            std::string tex;
+            iss >> tex;
+            // map_Bump can have a -bm scale argument, e.g: "map_Bump -bm 1.0 normal.png"
+            // if the first token is a flag, skip it and read the actual filename
+            if (tex[0] == '-') {
+                float bumpScale;
+                iss >> bumpScale >> tex; // skip flag value, read filename
+            }
+            std::string fullPath = assetDir + tex;
+            materials[current]->normal = std::make_shared<Texture>(fullPath);
+            materials[current]->hasNormalMap = true;
+        }
+
         else if (type == "Ns") {
             float ns;
             iss >> ns;

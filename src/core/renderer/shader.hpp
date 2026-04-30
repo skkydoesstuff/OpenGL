@@ -22,6 +22,7 @@ public:
     void setUniformVec2(const std::string& key, glm::vec2 vector) const;
     void setUniformFloat(const std::string& key, float value) const;
     void setUniformInt(const std::string& key, int value) const;
+    void setUniformBool(const std::string& key, bool value) const;
     
 private:
     unsigned int pId;

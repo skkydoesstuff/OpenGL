@@ -16,9 +16,19 @@ void Material::bind(const Shader& shader) const {
     if (specular) {
         specular->bind(1);
         shader.setUniformInt("uSpecularMap", 1);
-        shader.setUniformFloat("uHasSpecularMap", 1.0f);
+        shader.setUniformBool("uHasSpecularMap", true);
     } else {
-        shader.setUniformFloat("uHasSpecularMap", 0.0f);
+        shader.setUniformBool("uHasSpecularMap", false);
+    }
+
+    // 
+
+    if (normal) {
+        normal->bind(3);
+        shader.setUniformInt("uNormalMap", 3);
+        shader.setUniformBool("uHasNormalMap", true);
+    } else {
+        shader.setUniformBool("uHasNormalMap", false);
     }
 
     shader.setUniformFloat("uShininess", shininess);

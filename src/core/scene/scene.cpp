@@ -30,16 +30,18 @@ void Scene::createMesh(const std::string& tag,
 
 
     if (vertices.empty() != true) {
-        std::shared_ptr<Mesh> m = this->rm->meshes.create(tag, vertices, 8, indices);
-        m->addVertexAttribute(0, 3, GL_FLOAT, 8 * sizeof(float), (const void*)0);
-        m->addVertexAttribute(1, 3, GL_FLOAT, 8 * sizeof(float), (const void*)(sizeof(float) * 3));
-        m->addVertexAttribute(2, 2, GL_FLOAT, 8 * sizeof(float), (const void*)(sizeof(float) * 6));
+        std::shared_ptr<Mesh> m = this->rm->meshes.create(tag, vertices, 11, indices);
+        m->addVertexAttribute(0, 3, GL_FLOAT, 11 * sizeof(float), (const void*)0);
+        m->addVertexAttribute(1, 3, GL_FLOAT, 11 * sizeof(float), (const void*)(sizeof(float) * 3));
+        m->addVertexAttribute(2, 2, GL_FLOAT, 11 * sizeof(float), (const void*)(sizeof(float) * 6));
+        m->addVertexAttribute(3, 3, GL_FLOAT, 11 * sizeof(float), (const void*)(sizeof(float) * 8));
     } else if (objFileName.empty() != true) {
         MeshStructure meshStructure = loadOBJ(objFileName);
         std::shared_ptr<Mesh> m = this->rm->meshes.create(tag, meshStructure.vertices, 8, meshStructure.indices);
-        m->addVertexAttribute(0, 3, GL_FLOAT, 8 * sizeof(float), (const void*)0);
-        m->addVertexAttribute(1, 3, GL_FLOAT, 8 * sizeof(float), (const void*)(sizeof(float) * 3));
-        m->addVertexAttribute(2, 2, GL_FLOAT, 8 * sizeof(float), (const void*)(sizeof(float) * 6));
+        m->addVertexAttribute(0, 3, GL_FLOAT, 11 * sizeof(float), (const void*)0);
+        m->addVertexAttribute(1, 3, GL_FLOAT, 11 * sizeof(float), (const void*)(sizeof(float) * 3));
+        m->addVertexAttribute(2, 2, GL_FLOAT, 11 * sizeof(float), (const void*)(sizeof(float) * 6));
+        m->addVertexAttribute(3, 3, GL_FLOAT, 11 * sizeof(float), (const void*)(sizeof(float) * 8));
 
         m->submeshes = meshStructure.submeshes;
 
@@ -48,7 +50,7 @@ void Scene::createMesh(const std::string& tag,
         }
 
         for (auto& [key, mat] : meshStructure.materials) {
-            this->createMaterial(key, mat->shininess, mat->diffuse, mat->specular, mat->opacity);
+            this->createMaterial(key, mat->shininess, mat->diffuse, mat->specular, mat->opacity, mat->normal);
         }
     }
 }
@@ -61,12 +63,14 @@ void Scene::createMaterial(const std::string& tag,
                            const float shininess,
                            std::shared_ptr<Texture> tex,
                            std::shared_ptr<Texture> spec,
-                           std::shared_ptr<Texture> opacity) {
+                           std::shared_ptr<Texture> opacity,
+                           std::shared_ptr<Texture> normal) {
     std::shared_ptr<Material> mat = this->rm->materials.create(tag);
     mat->diffuse = tex;
     mat->specular = spec;
     mat->shininess = shininess;
     mat->opacity = opacity;
+    mat->normal = normal;
 }
 
 void Scene::createPass(const std::string& tag,

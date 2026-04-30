@@ -75,6 +75,12 @@ void Shader::setUniformInt(const std::string& key, int value) const {
     glUniform1i(uni, value);
 }
 
+void Shader::setUniformBool(const std::string& key, bool value) const {
+    int uni = this->findUniform(key);
+    if (uni == -1) return;
+    glUniform1i(uni, value);
+}
+
 int Shader::findUniform(const std::string& key) const {
     auto it = this->uniforms.find(key);
     if (it != this->uniforms.end()) {

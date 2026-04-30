@@ -17,9 +17,13 @@ uniform int uNumLights;
 uniform sampler2D uDiffuseMap;
 uniform sampler2D uSpecularMap;
 uniform float uHasSpecularMap;
-uniform sampler2D uOpacityMap;
 
+uniform sampler2D uOpacityMap;
 float uOpacityMapStrength = 1.0;
+
+uniform sampler2D uNormalMap;
+uniform bool uHasNormalMap;
+
 uniform float uShininess;
 uniform float uOpacity;
 
@@ -28,6 +32,7 @@ uniform vec3 viewPos;
 in vec3 normal;
 in vec3 fragPos;
 in vec2 vTexCoord;
+in vec3 TBN;
 
 layout(location = 0) out vec4 gColor;
 layout(location = 1) out vec4 gNormal;
@@ -53,7 +58,18 @@ vec3 calcLight(Light light, vec3 N, vec3 viewDir, vec3 diffuseTex, vec3 specular
 }
 
 void main() {
-    vec3 N = normalize(normal);
+    vec3 N;
+
+    if (uHasNormalMap) {
+        /*
+        N = texture(uNormalMap, TexCoords).rgb;
+        N = normalize(N * 2.0 - 1.0);
+        N = normalize(TBN * N);
+        */
+    } else {
+        N = normalize(normal);
+    }
+    
     vec3 viewDir = normalize(viewPos - fragPos);
 
     vec3 diffuseTex = texture(uDiffuseMap, vTexCoord).rgb;
