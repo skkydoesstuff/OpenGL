@@ -14,6 +14,8 @@ public:
     Shader(const Shader &) = delete;
     Shader& operator=(const Shader &) = delete;
 
+    std::string vertName, fragName;
+
     void bind() const;    
     void setUniformMat4(const std::string& key, glm::mat4 matrix) const;
     void setUniformMat3(const std::string& key, glm::mat3 matrix) const;

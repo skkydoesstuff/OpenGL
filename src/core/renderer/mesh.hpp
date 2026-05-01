@@ -38,6 +38,7 @@ public:
     void drawSubMesh(const SubMesh& sm) const;
 
     std::vector<SubMesh> submeshes; // <-- add this
+    std::string sourceFile;
 
     Mesh(const Mesh &) = delete;
     Mesh& operator=(const Mesh &) = delete;

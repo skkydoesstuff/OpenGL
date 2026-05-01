@@ -1,8 +1,8 @@
 {
     "meshes": [
         {
-            "name": "tree",
-            "atlas": "seafront"
+            "name": "seafront",
+            "source": "seafront"
         }
     ],
     "shaders": [
@@ -13,8 +13,8 @@
     ],
     "models": [
         {
-            "name": "tree",
-            "mesh": "tree",
+            "name": "seafront",
+            "mesh": "seafront",
             "transform": {
                 "position": [0.0, 0.0, 0.0],
                 "rotation": [0.0, 0.0, 0.0],
@@ -36,6 +36,13 @@
     ],
     "passes": [
         {
+            "name": "pixelated",
+            "shader": "pixelated",
+            "uniforms": {
+                "uPixelSize": 4.0
+            }
+        },
+        {
             "name": "scanline",
             "shader": "scanline",
             "uniforms": {
@@ -45,13 +52,6 @@
                 "uGlowStrength": 0.3,
                 "uVignetteStrength": 0.35,
                 "uBrightBoost": 1.15
-            }
-        },
-        {
-            "name": "pixelated",
-            "shader": "pixelated",
-            "uniforms": {
-                "uPixelSize": 4.0
             }
         }
     ]

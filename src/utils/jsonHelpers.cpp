@@ -7,7 +7,7 @@ using json = nlohmann::json;
 #include <iostream>
 #include <fstream>
 
-void printJson(const json& j, int indent = 0) {
+void printJson(const json& j, int indent) {
     std::string pad(indent, ' ');
 
     if (j.is_object()) {
@@ -49,8 +49,6 @@ json parseJson(const std::string& path) {
 
     json j;
     file >> j;
-
-    printJson(j);
 
     return j;
 }

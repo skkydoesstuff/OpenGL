@@ -19,6 +19,7 @@ public:
     Scene(uint32_t width, uint32_t height);
 
     void loadSceneFromJSON(const std::string& jsonPath);
+    void saveSceneToJSON(const std::string& jsonPath);
 
     void createShader(const std::string& tag,
                       const std::string& vert,
@@ -39,7 +40,7 @@ public:
                         std::shared_ptr<Texture> normal);
 
     void createPass(const std::string& tag,
-                    std::shared_ptr<Shader> shader,
+                    const std::string& shaderTag,
                     std::unordered_map<std::string, UniformValue> uniforms = {},
                     std::unordered_map<std::string, std::string> extraTextures = {},
                     const std::string& output = "");

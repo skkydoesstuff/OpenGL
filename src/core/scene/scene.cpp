@@ -9,6 +9,7 @@
 
 #include <algorithm>
 #include <iostream>
+#include <fstream>
 
 Scene::Scene(uint32_t width, uint32_t height) {
     this->rm = std::make_unique<ResourceManager>();
@@ -21,9 +22,10 @@ void Scene::loadSceneFromJSON(const std::string& jsonPath) {
 
     for (const auto& mesh : sceneObjs["meshes"]) {
         std::string name = mesh.value("name", "");
-        std::string atlas = mesh.value("atlas", "");
+        std::string source = mesh.value("source", "");
 
-        this->createMesh(name, {}, {}, atlas);
+        this->createMesh(name, {}, {}, source);
+        
     }
 
     for (const auto& shader : sceneObjs["shaders"]) {
@@ -107,8 +109,6 @@ void Scene::loadSceneFromJSON(const std::string& jsonPath) {
         std::string name   = pass.value("name", "");
         std::string shader = pass.value("shader", "");
 
-        std::shared_ptr<Shader> s = this->getShader(shader);
-
         std::unordered_map<std::string, UniformValue> uniforms;
         std::unordered_map<std::string, std::string> textures;
 
@@ -151,15 +151,121 @@ void Scene::loadSceneFromJSON(const std::string& jsonPath) {
             }
         }
 
-        this->createPass(name, s, uniforms, textures, "");
+        this->createPass(name, shader, uniforms, textures, "");
     }
+    //printJson(sceneObjs);
+}
+
+void Scene::saveSceneToJSON(const std::string& jsonPath) {
+    json sceneObjects;
+
+    for (const auto& [k, v] : this->rm->meshes.items()) {
+        json mesh;
+        mesh["name"] = k;
+        mesh["source"] = v->sourceFile;
+
+        sceneObjects["meshes"].push_back(mesh);
+    }
+
+    for (const auto& [k, v] : this->rm->shaders.items()) {
+        json shader;
+        shader["name"] = k;
+        shader["vert"] = v->vertName;
+        shader["frag"] = v->fragName;
+
+        sceneObjects["shaders"].push_back(shader);
+    }
+
+    for (const auto& [k, v] : this->rm->models.items()) {
+        json model;
+
+        model["name"] = k;
+        model["mesh"] = v->meshSourceName;
+
+        json transform;
+
+        transform["position"] = {
+            v->transform.position.x,
+            v->transform.position.y,
+            v->transform.position.z
+        };
+
+        transform["rotation"] = {
+            v->transform.rotation.x,
+            v->transform.rotation.y,
+            v->transform.rotation.z
+        };
+
+        transform["scale"] = {
+            v->transform.scale.x,
+            v->transform.scale.y,
+            v->transform.scale.z
+        };
+
+        model["transform"] = transform;
+
+        sceneObjects["models"].push_back(model);
+    }
+
+    for (auto& [k, v] : this->rm->lights.items()) {
+        json light;
+
+        light["name"] = k;
+        
+        light["position"] = {v->position.x, v->position.y, v->position.z};
+        light["ambient"] = {v->ambient.x, v->ambient.y, v->ambient.z};
+        light["diffuse"] = {v->diffuse.x, v->diffuse.y, v->diffuse.z};
+        light["specular"] = {v->specular.x, v->specular.y, v->specular.z};
+
+        light["constant"] = v->constant;
+        light["linear"] = v->linear;
+        light["quadratic"] = v->quadratic;
+
+        sceneObjects["lights"].push_back(light);
+    }
+
+    for (const auto& [k, v] : this->rm->passes.items()) {
+        json pass;
+        pass["name"] = k;
+        pass["shader"] = v->shaderName;
+
+        json uniforms;
+        for (const auto& [key, val] : v->uniforms) {
+            std::visit([&](auto&& v) {
+                using T = std::decay_t<decltype(v)>;
+                if constexpr (std::is_same_v<T, int>)            uniforms[key] = v;
+                else if constexpr (std::is_same_v<T, float>)     uniforms[key] = v;
+                else if constexpr (std::is_same_v<T, glm::vec2>) uniforms[key] = { v.x, v.y };
+                else if constexpr (std::is_same_v<T, glm::vec3>) uniforms[key] = { v.x, v.y, v.z };
+                else if constexpr (std::is_same_v<T, glm::vec4>) uniforms[key] = { v.x, v.y, v.z, v.w };
+                else if constexpr (std::is_same_v<T, glm::mat4>) {
+                    json mat = json::array();
+                    for (int i = 0; i < 4; i++)
+                        for (int j = 0; j < 4; j++)
+                            mat.push_back(v[i][j]);
+                    uniforms[key] = mat;
+                }
+            }, val);
+        }
+        pass["uniforms"] = uniforms;
+        sceneObjects["passes"].push_back(pass);
+    }
+
+    std::ofstream out(jsonPath);
+    if (!out.is_open()) {
+        std::cerr << "Failed to open: " << jsonPath << "\n";
+        return;
+    }
+    out << sceneObjects.dump(4);
 }
 
 void Scene::createShader(const std::string& tag,
-                      const std::string& vert,
-                      const std::string& frag) {
+                         const std::string& vert,
+                         const std::string& frag) {
 
-    this->rm->shaders.create(tag, vert, frag);
+    std::shared_ptr<Shader> s = this->rm->shaders.create(tag, vert, frag);
+    s->vertName = vert;
+    s->fragName = frag;
 }
 
 /**
@@ -170,7 +276,6 @@ void Scene::createMesh(const std::string& tag,
                       const std::vector<unsigned int> indices,
                       const std::string& objFileName) {
 
-
     if (vertices.empty() != true) {
         std::shared_ptr<Mesh> m = this->rm->meshes.create(tag, vertices, 11, indices);
         m->addVertexAttribute(0, 3, GL_FLOAT, 11 * sizeof(float), (const void*)0);
@@ -179,7 +284,8 @@ void Scene::createMesh(const std::string& tag,
         m->addVertexAttribute(3, 3, GL_FLOAT, 11 * sizeof(float), (const void*)(sizeof(float) * 8));
     } else if (objFileName.empty() != true) {
         MeshStructure meshStructure = loadOBJ(objFileName);
-        std::shared_ptr<Mesh> m = this->rm->meshes.create(tag, meshStructure.vertices, 8, meshStructure.indices);
+        std::shared_ptr<Mesh> m = this->rm->meshes.create(tag, meshStructure.vertices, 11, meshStructure.indices);
+        m->sourceFile = objFileName;
         m->addVertexAttribute(0, 3, GL_FLOAT, 11 * sizeof(float), (const void*)0);
         m->addVertexAttribute(1, 3, GL_FLOAT, 11 * sizeof(float), (const void*)(sizeof(float) * 3));
         m->addVertexAttribute(2, 2, GL_FLOAT, 11 * sizeof(float), (const void*)(sizeof(float) * 6));
@@ -216,13 +322,14 @@ void Scene::createMaterial(const std::string& tag,
 }
 
 void Scene::createPass(const std::string& tag,
-                       std::shared_ptr<Shader> shader,
+                       const std::string& shaderTag,
                        std::unordered_map<std::string, UniformValue> uniforms,
                        std::unordered_map<std::string, std::string> extraTextures,
                        const std::string& output) {
     
     PostProcessPass* pass = this->rm->passes.create(tag);
-    pass->shader = shader;
+    pass->shaderName = shaderTag;
+    pass->shader = this->rm->shaders.get(shaderTag);
     pass->uniforms = std::move(uniforms);
     pass->extraTextures = std::move(extraTextures);
     pass->saveOutputAs = std::move(output);
@@ -233,7 +340,11 @@ Model* Scene::createModel(const std::string& tag,
 {
     std::shared_ptr<Mesh> m = this->rm->meshes.get(meshTag);
 
-    return this->rm->models.create(tag, m);
+    Model* model = this->rm->models.create(tag, m);
+    
+    model->meshSourceName = m->sourceFile;
+
+    return model;
 }
 
 Light* Scene::createLight(const std::string& tag) {

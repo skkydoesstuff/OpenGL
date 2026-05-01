@@ -3,6 +3,7 @@
 #include <sstream>
 #include <fstream>
 #include <iostream>
+#include <filesystem>
 
 std::unordered_map<std::string, Material*>
 MTLLoader::load(const std::string& path) {
@@ -38,8 +39,11 @@ MTLLoader::load(const std::string& path) {
 
             std::string fullPath = assetDir + tex;
 
-            materials[current]->diffuse =
-                std::make_shared<Texture>(fullPath);
+            if (!std::filesystem::exists(fullPath)) {
+                std::cerr << "Texture not found, skipping: " << fullPath << "\n";
+            } else {
+                materials[current]->diffuse = std::make_shared<Texture>(fullPath);
+            }
         }
 
         else if (type == "map_Ks") {

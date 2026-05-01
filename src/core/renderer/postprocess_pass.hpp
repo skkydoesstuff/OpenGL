@@ -22,6 +22,8 @@ struct PostProcessPass {
     std::unordered_map<std::string, UniformValue> uniforms;
     bool useBrightBuffer = false;
 
+    std::string shaderName;
+
     // if set, save the output of this pass under this name
     std::string saveOutputAs;
 

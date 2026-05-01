@@ -6,9 +6,8 @@
 
 #include "core/transform.hpp"
 #include "core/renderer/material.hpp"
-
-class Shader;
-class Mesh;
+#include "core/renderer/shader.hpp"
+#include "core/renderer/mesh.hpp"
 
 enum class DrawMode {
     Opaque,
@@ -21,7 +20,9 @@ public:
     std::shared_ptr<Mesh> mesh;
     
     Model(std::shared_ptr<Mesh> mesh);
-    
+
+    std::string meshSourceName;
+
     void updateModelMatrix();
     glm::mat4 getModelMatrix();
     

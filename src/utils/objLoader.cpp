@@ -9,7 +9,7 @@
 MeshStructure loadOBJ(const std::string& name) {
     static std::string exeDir = getExecutableDirectory();
     static std::string assetDir = exeDir + "\\assets\\";
-    std::string inputfile = assetDir + "\\objects\\" + name + ".obj";
+    std::string inputfile = assetDir + "objects\\" + name + ".obj";
     static std::string mtlDir = assetDir + "\\objects\\";
 
     tinyobj::attrib_t attrib;
@@ -42,8 +42,6 @@ MeshStructure loadOBJ(const std::string& name) {
 
     // vertexMap must be outside all loops
     std::unordered_map<std::string, unsigned int> vertexMap;
-
-    std::cout << "materials size: " << materials.size() << "\n";
 
     for (const auto& shape : shapes) {
         size_t index_offset = 0;

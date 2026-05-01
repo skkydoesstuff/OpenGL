@@ -8,6 +8,7 @@ public:
     ~Texture();
 
     void bind(unsigned int slot = 0) const;
+    bool loaded;
 
 private:
     unsigned int id;

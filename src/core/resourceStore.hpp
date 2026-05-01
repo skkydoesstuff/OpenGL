@@ -18,10 +18,13 @@ public:
 
     template<typename... Args>
     std::shared_ptr<T> create(const std::string& key, Args&&... args) {
+        if (!resources.count(key))
+            insertionOrder.push_back(key);  // only on first insert
         auto res = std::make_shared<T>(std::forward<Args>(args)...);
         resources[key] = res;
         return res;
     }
+
 
     bool exists(const std::string& key) const {
         return resources.find(key) != resources.end();
@@ -37,8 +40,17 @@ public:
         return out;
     }
 
+    std::vector<std::pair<std::string, T*>> items() {
+        std::vector<std::pair<std::string, T*>> out;
+        out.reserve(insertionOrder.size());
+        for (const auto& k : insertionOrder)
+            out.emplace_back(k, resources[k].get());
+        return out;
+    }
+
 private:
     std::unordered_map<std::string, std::shared_ptr<T>> resources;
+    std::vector<std::string> insertionOrder;
 };
 
 template<typename T>
@@ -46,6 +58,8 @@ class UniqueResourceStore {
 public:
     template<typename... Args>
     T* create(const std::string& key, Args&&... args) {
+        if (!resources.count(key))
+            insertionOrder.push_back(key);  // only on first insert
         auto obj = std::make_unique<T>(std::forward<Args>(args)...);
         T* ptr = obj.get();
         resources.emplace(key, std::move(obj));
@@ -80,6 +94,15 @@ public:
         return out;
     }
 
+    std::vector<std::pair<std::string, T*>> items() {
+        std::vector<std::pair<std::string, T*>> out;
+        out.reserve(insertionOrder.size());
+        for (const auto& k : insertionOrder)
+            out.emplace_back(k, resources[k].get());
+        return out;
+    }
+
 private:
     std::unordered_map<std::string, std::unique_ptr<T>> resources;
+    std::vector<std::string> insertionOrder;
 };
