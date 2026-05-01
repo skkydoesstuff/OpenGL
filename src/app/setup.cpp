@@ -30,24 +30,5 @@ void App::setup() {
 
         .pixelSize = 4.0f
     };
-
-    scene->createPass(
-        "scanline",
-        scene->getShader("scanline"),
-        {
-            {"uScanlineThickness", this->settings.scanThickness},
-            {"uScanlineDarkness", this->settings.scanDarkness},
-            {"uPhosphorStrength", this->settings.phosphorStrength},
-            {"uGlowStrength", this->settings.glowStrength},
-            {"uVignetteStrength", this->settings.vignetteStrength},
-            {"uBrightBoost", this->settings.brightBoost},
-        }
-    );
-
-    scene->createPass(
-        "pixelated",
-        scene->getShader("pixelated"),
-        {{"uPixelSize", this->settings.pixelSize}}
-    );
 }
  

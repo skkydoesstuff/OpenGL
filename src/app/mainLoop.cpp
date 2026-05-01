@@ -13,6 +13,16 @@ void App::mainLoop() {
             ImGui_ImplGlfw_Sleep(10);
         }
 
+        Renderer* r = this->scene->getRenderer();
+
+        int fbWidth, fbHeight;
+        glfwGetFramebufferSize(window, &fbWidth, &fbHeight);
+
+        if (fbWidth != r->getWidth() || fbHeight != r->getHeight()) {
+            r->setDimensions(fbWidth, fbHeight);
+            glViewport(0, 0, fbWidth, fbHeight);
+        }
+
         this->logicLoop();
 
         this->imguiRender();

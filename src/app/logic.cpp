@@ -6,14 +6,6 @@
 void App::logicLoop() {
     Renderer* r = this->scene->getRenderer();
 
-    int fbWidth, fbHeight;
-    glfwGetFramebufferSize(window, &fbWidth, &fbHeight);
-
-    if (fbWidth != r->getWidth() || fbHeight != r->getHeight()) {
-        r->setDimensions(fbWidth, fbHeight);
-        glViewport(0, 0, fbWidth, fbHeight);
-    }
-
     r->clearPasses();
 
     if (this->settings.scanlineOn == true) {
