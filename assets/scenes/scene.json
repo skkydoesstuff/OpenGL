@@ -1,0 +1,37 @@
+{
+    "meshes": [
+        {
+            "name": "seafront",
+            "atlas": "seafront"
+        }
+    ],
+    "shaders": [
+        { "name": "base", "vert": "base.vert", "frag": "base.frag" },
+        { "name": "scanline", "vert": "blit.vert", "frag": "scanline.frag" },
+        { "name": "outline", "vert": "blit.vert", "frag": "outline.frag" },
+        { "name": "pixelated", "vert": "blit.vert", "frag": "pixelated.frag" }
+    ],
+    "models": [
+        {
+            "name": "seafront",
+            "mesh": "seafront",
+            "transform": {
+                "position": [0.0, 0.0, 0.0],
+                "rotation": [0.0, 0.0, 0.0],
+                "scale": [0.50, 0.50, 0.50]
+            }
+        }
+    ],
+    "lights": [
+        {
+            "name": "light",
+            "position": [1.7, 2.3, -2.9],
+            "ambient":  [5.0, 5.0, 5.0],
+            "diffuse":  [10.0, 10.0, 10.0],
+            "specular": [0.5, 0.5, 0.5],
+            "constant":  1.0,
+            "linear":    1.0,
+            "quadratic": 1.2
+        }
+    ]
+}

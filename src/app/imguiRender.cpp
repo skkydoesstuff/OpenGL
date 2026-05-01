@@ -7,7 +7,8 @@
 #include "imgui_impl_opengl3.h"
 
 void App::imguiRender() {
-    Camera* cam = scene.getCamera();
+    Camera* cam = scene->getCamera();
+    Light* light = scene->getLight("light");
     
     ImGui_ImplOpenGL3_NewFrame();
     ImGui_ImplGlfw_NewFrame();
@@ -37,6 +38,18 @@ void App::imguiRender() {
     }
 
     ImGui::EndTabBar();
+    ImGui::End();
+
+    ImGui::Begin("Light");
+
+    ImGui::InputFloat3("Position", &light->position.x);
+    ImGui::InputFloat3("Diffuse", &light->diffuse.x);
+    ImGui::InputFloat3("Ambient", &light->ambient.x);
+    ImGui::InputFloat3("Specular", &light->specular.x);
+    ImGui::InputFloat("Constant", &light->constant);
+    ImGui::InputFloat("Linear", &light->linear);
+    ImGui::InputFloat("Quadratic", &light->quadratic);
+
     ImGui::End();
 
     ImGui::Render();

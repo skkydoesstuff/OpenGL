@@ -45,6 +45,7 @@ APP_SOURCES := \
     src/utils/objLoader.cpp \
     src/utils/mtlLoader.cpp \
     src/utils/tiny_obj_loader.cpp \
+    src/utils/jsonHelpers.cpp \
     src/utils/stb_image.cpp 
 
 IMGUI_SOURCES := \
@@ -80,6 +81,7 @@ INCLUDES := \
     -Iexternal/imgui/backends \
     -Iexternal/glad/include \
     -Iexternal/glm \
+    -Iexternal/nlohmann \
     -Isrc
 
 # -------------------------

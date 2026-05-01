@@ -5,8 +5,10 @@
 #include "core/renderer/shader.hpp"
 #include "core/renderer/texture.hpp"
 #include "core/renderer/material.hpp"
+#include "core/renderer/renderer.hpp"
 #include "core/renderer/postprocess_pass.hpp"
 #include "core/scene/model.hpp"
+#include "core/scene/camera.hpp"
 #include "core/scene/light.hpp"
 
 class ResourceManager {
@@ -18,4 +20,6 @@ public:
     UniqueResourceStore<PostProcessPass> passes;
     UniqueResourceStore<Model> models;
     UniqueResourceStore<Light> lights;
+    UniqueResourceStore<Renderer> renderers;
+    UniqueResourceStore<Camera> cameras;
 };

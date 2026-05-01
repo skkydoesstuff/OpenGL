@@ -16,14 +16,14 @@ out mat3 TBN;
 void main() {
     gl_Position = projection * view * model * vec4(aPos, 1.0);
     fragPos = vec3(model * vec4(aPos, 1.0));  // world space ✓
-    mat3 normalMatrix = transpose(inverse(mat3(model)));
 
-    vec3 T = normalize(vec3(model * vec4(aTangent, 0.0)));
-    vec3 N = normalize(vec3(model * vec4(aNormal, 0.0)));
-    T = normalize(T - dot(T, N) * N); // re-orthogonalize (Gram-Schmidt)
+    mat3 normalMatrix = transpose(inverse(mat3(model)));
+    vec3 T = normalize(normalMatrix * aTangent);
+    vec3 N = normalize(normalMatrix * aNormal);
+    T = normalize(T - dot(T, N) * N);
     vec3 B = cross(N, T);
     TBN = mat3(T, B, N);
-    normal = N;   // world-space, scale-safe
+    normal = N;
 
     vTexCoord    = aTexCoord;
 }

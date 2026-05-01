@@ -4,7 +4,7 @@
 #include <GLFW/glfw3.h>
 
 void App::logicLoop() {
-    Renderer* r = this->scene.getRenderer();
+    Renderer* r = this->scene->getRenderer();
 
     int fbWidth, fbHeight;
     glfwGetFramebufferSize(window, &fbWidth, &fbHeight);
@@ -17,7 +17,7 @@ void App::logicLoop() {
     r->clearPasses();
 
     if (this->settings.scanlineOn == true) {
-        auto scanline = scene.getPass("scanline");
+        auto scanline = scene->getPass("scanline");
 
         scanline->uniforms["uScanlineThickness"] = this->settings.scanThickness;
         scanline->uniforms["uScanlineDarkness"]  = this->settings.scanDarkness;
@@ -30,7 +30,7 @@ void App::logicLoop() {
     }
 
     if (this->settings.pixelatedOn == true) {
-        auto pixelated = scene.getPass("pixelated");
+        auto pixelated = scene->getPass("pixelated");
 
         pixelated->uniforms["uPixelSize"] = this->settings.pixelSize;
         r->addPass(pixelated);
@@ -54,7 +54,7 @@ void App::logicLoop() {
 
     escPressedLast = escPressed;
 
-    Camera* cam = this->scene.getCamera();
+    Camera* cam = this->scene->getCamera();
     float speed = 0.05f;
     glm::vec3 forward;
     glm::vec3 right;

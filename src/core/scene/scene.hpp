@@ -16,7 +16,9 @@
 
 class Scene {
 public:
-    Scene();
+    Scene(uint32_t width, uint32_t height);
+
+    void loadSceneFromJSON(const std::string& jsonPath);
 
     void createShader(const std::string& tag,
                       const std::string& vert,
@@ -51,8 +53,6 @@ public:
                          float aspectRatio,
                          float zNear,
                          float zFar);
-                       
-    Renderer* createRenderer();
     
     std::shared_ptr<Shader> getShader(const std::string& tag);
     std::shared_ptr<Mesh> getMesh(const std::string& tag);
@@ -62,7 +62,6 @@ public:
     Model* getModel(const std::string& tag);
     Light* getLight(const std::string& tag);
     
-    // these are owned by the scene for now
     Camera* getCamera();
     Renderer* getRenderer();
 
@@ -76,11 +75,6 @@ private:
 
     std::unique_ptr<Renderer> renderer;
     std::unique_ptr<Camera> cam;
-
-    /*
-    std::vector<Model*> modelList;
-    std::vector<Light*> lightList;
-    */
 
     FrameData buildFrame();
     RenderContext buildContext(std::shared_ptr<Shader> shader);

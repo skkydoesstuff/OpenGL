@@ -8,9 +8,9 @@
 #include <utils/stb_image.h>
 
 void App::render() {
-    Renderer* r = scene.getRenderer();
+    Renderer* r = scene->getRenderer();
 
-    FrameSnapshot fs = scene.buildSnapshot("base");
+    FrameSnapshot fs = scene->buildSnapshot("base");
 
     r->renderScene(fs);
 }

@@ -5,12 +5,103 @@
 #include "core/scene/model.hpp"
 
 #include "utils/objLoader.hpp"
+#include "utils/jsonHelpers.hpp"
 
 #include <algorithm>
 #include <iostream>
 
-Scene::Scene() {
+Scene::Scene(uint32_t width, uint32_t height) {
     this->rm = std::make_unique<ResourceManager>();
+    Renderer* r = this->rm->renderers.create("main");
+    r->init(width, height);
+}
+
+void Scene::loadSceneFromJSON(const std::string& jsonPath) {
+    json sceneObjs = parseJson(jsonPath);
+
+    for (const auto& mesh : sceneObjs["meshes"]) {
+        std::string name = mesh.value("name", "");
+        std::string atlas = mesh.value("atlas", "");
+
+        this->createMesh(name, {}, {}, atlas);
+    }
+
+    for (const auto& shader : sceneObjs["shaders"]) {
+        std::string name = shader.value("name", "");
+        std::string vert = shader.value("vert", "");
+        std::string frag = shader.value("frag", "");
+
+        this->createShader(name, vert, frag);
+    }
+
+    for (const auto& model : sceneObjs["models"]) {
+        std::string name = model.value("name", "");
+        std::string mesh = model.value("mesh", "");
+
+        Model* m = this->createModel(name, mesh);
+
+        auto& transform = model["transform"];
+
+        m->transform.position = glm::vec3(
+            transform["position"][0],
+            transform["position"][1],
+            transform["position"][2]
+        );
+
+        m->transform.rotation = glm::vec3(
+            transform["rotation"][0],
+            transform["rotation"][1],
+            transform["rotation"][2]
+        );
+
+        m->transform.scale = glm::vec3(
+            transform["scale"][0],
+            transform["scale"][1],
+            transform["scale"][2]
+        );
+    }
+
+    for (const auto& light : sceneObjs["lights"]) {
+        std::string name = light.value("name", "");
+
+        Light* l = this->createLight(name);
+
+        auto& position = light["position"];
+        auto& ambient = light["ambient"];
+        auto& diffuse = light["diffuse"];
+        auto& specular = light["specular"];
+        auto& constant = light["constant"];
+        auto& linear = light["linear"];
+        auto& quadratic = light["quadratic"];
+
+        l->position = glm::vec3(
+            position[0],
+            position[1],
+            position[2]
+        );
+
+        l->ambient = glm::vec3(
+            ambient[0],
+            ambient[1],
+            ambient[2]
+        );
+        
+        l->diffuse = glm::vec3(
+            diffuse[0],
+            diffuse[1],
+            diffuse[2]
+        );
+
+        l->specular = glm::vec3(
+            specular[0],
+            specular[1],
+            specular[2]
+        );
+    
+        l->constant = constant;
+        l->linear = linear;
+        l->quadratic = quadratic;
+    }
 }
 
 void Scene::createShader(const std::string& tag,
@@ -102,14 +193,8 @@ Camera* Scene::createCamera(float fovInRadians,
                             float aspectRatio,
                             float zNear,
                             float zFar) {
-    this->cam = std::make_unique<Camera>(fovInRadians, aspectRatio, zNear, zFar);
-    return this->cam.get();
-}
-
-Renderer* Scene::createRenderer() {
-    this->renderer = std::make_unique<Renderer>();
-
-    return this->renderer.get();
+    Camera* cam = this->rm->cameras.create("main", fovInRadians, aspectRatio, zNear, zFar);
+    return cam;
 }
 
 std::shared_ptr<Shader> Scene::getShader(const std::string& tag) {
@@ -141,11 +226,11 @@ Light* Scene::getLight(const std::string& tag) {
 }
 
 Camera* Scene::getCamera() {
-    return this->cam.get();
+    return this->rm->cameras.get("main");
 }
 
 Renderer* Scene::getRenderer() {
-    return this->renderer.get();
+    return this->rm->renderers.get("main");
 }
 
 static float computeTransparentDepth(

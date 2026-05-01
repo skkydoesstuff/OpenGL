@@ -7,6 +7,10 @@ Camera::Camera(float fovInRadians, float aspectRatio, float zNear, float zFar) {
     this->projection = glm::perspective(glm::radians(fovInRadians), aspectRatio, zNear, zFar);
 }
 
+void Camera::setProjection(float fovInRadians, float aspectRatio, float zNear, float zFar) {
+    this->projection = glm::perspective(glm::radians(fovInRadians), aspectRatio, zNear, zFar);
+}
+
 glm::mat4 Camera::getView() {
     float yaw = glm::radians(rotation.y);
     float pitch = glm::radians(rotation.x);

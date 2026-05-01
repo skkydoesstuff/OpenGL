@@ -10,6 +10,8 @@ public:
     Camera(const Camera&) = delete;
     Camera& operator=(const Camera&) = delete;
 
+    void setProjection(float fovInRadians, float aspectRatio, float zNear, float zFar);
+
     glm::mat4 getView();
     glm::mat4 getProjection();
 

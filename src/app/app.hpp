@@ -16,6 +16,7 @@ class App {
 public:
     const uint32_t width = 1280;
     const uint32_t height = 720;
+    
     void run();
 
     App();
@@ -25,7 +26,7 @@ private:
     GLFWwindow* window;
     ImGuiIO io;
 
-    Scene scene;
+    Scene* scene;
     ShaderSettings settings;
 
     bool mouseLocked = true;

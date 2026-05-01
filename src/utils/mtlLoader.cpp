@@ -62,17 +62,21 @@ MTLLoader::load(const std::string& path) {
         }
 
         else if (type == "map_Bump" || type == "bump") {
+            std::string token;
             std::string tex;
-            iss >> tex;
-            // map_Bump can have a -bm scale argument, e.g: "map_Bump -bm 1.0 normal.png"
-            // if the first token is a flag, skip it and read the actual filename
-            if (tex[0] == '-') {
-                float bumpScale;
-                iss >> bumpScale >> tex; // skip flag value, read filename
+            while (iss >> token) {
+                if (token[0] == '-') {
+                    iss >> token; // skip the flag's value
+                } else {
+                    tex = token; // first non-flag token is the filename
+                    break;
+                }
             }
-            std::string fullPath = assetDir + tex;
-            materials[current]->normal = std::make_shared<Texture>(fullPath);
-            materials[current]->hasNormalMap = true;
+            if (!tex.empty()) {
+                std::string fullPath = assetDir + tex;
+                materials[current]->normal = std::make_shared<Texture>(fullPath);
+                materials[current]->hasNormalMap = true;
+            }
         }
 
         else if (type == "Ns") {

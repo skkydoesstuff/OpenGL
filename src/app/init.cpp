@@ -63,4 +63,6 @@ App::App() {
 
     ImGui_ImplGlfw_InitForOpenGL(window, true);
     ImGui_ImplOpenGL3_Init(glsl_version);
+
+    this->scene = new Scene(this->width, this->height);
 }
