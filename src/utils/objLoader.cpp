@@ -43,6 +43,8 @@ MeshStructure loadOBJ(const std::string& name) {
     // vertexMap must be outside all loops
     std::unordered_map<std::string, unsigned int> vertexMap;
 
+    std::cout << "materials size: " << materials.size() << "\n";
+
     for (const auto& shape : shapes) {
         size_t index_offset = 0;
         for (size_t f = 0; f < shape.mesh.num_face_vertices.size(); f++) {
@@ -142,9 +144,18 @@ MeshStructure loadOBJ(const std::string& name) {
         auto it = finalMaterials.find(sm.materialName);
         if (it != finalMaterials.end()) {
             sm.material = it->second;
-            sm.renderType =
-                (sm.material->hasOpacityMap || sm.material->opacityValue < 1.0f)
-                ? RenderType::Transparent : RenderType::Opaque;
+            sm.renderType = RenderType::Opaque;
+
+            if (sm.material->hasOpacityMap && !sm.material->isTransparent) {
+                // black/white cutout — opaque pass with discard
+                sm.material->hasCutoutMap = true;
+                sm.renderType = RenderType::Opaque;
+            } else if (sm.material->isTransparent || sm.material->opacityValue < 1.0f) {
+                // genuine transparency — blended pass
+                sm.renderType = RenderType::Transparent;
+            } else {
+                sm.renderType = RenderType::Opaque;
+            }
         }
         submeshes.push_back(sm);
     }

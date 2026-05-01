@@ -2,27 +2,28 @@
 # www.blender.org
 
 newmtl Environment
-Ns 20.000006
+Ns 70.000006
 Ka 1.000000 1.000000 1.000000
 Ks 0.000000 0.000000 0.000000
 Ke 0.000000 0.000000 0.000000
 Ni 1.500000
 illum 1
 map_Kd textures/texture_environment.jpg
-#map_d textures/texture_environment_opacity.jpeg
+map_Ks textures/texture_environment_specular.jpg
+map_d textures/texture_environment_opacity.jpeg
 
 newmtl Fortress
-Ns 20.000006
+Ns 70.000006
 Ka 1.000000 1.000000 1.000000
 Ks 0.000000 0.000000 0.000000
 Ke 0.000000 0.000000 0.000000
 Ni 1.500000
 illum 1
 map_Kd textures/texture_building.jpeg
-#map_d textures/texture_building_opacity.jpeg
+map_Ks textures/texture_building_specular.jpg
 
 newmtl Sand
-Ns 20.000006
+Ns 70.000006
 Ka 1.000000 1.000000 1.000000
 Ks 0.000000 0.000000 0.000000
 Ke 0.000000 0.000000 0.000000
@@ -32,17 +33,18 @@ illum 1
 map_Kd textures/texture_sand.jpeg
 
 newmtl Sea
-Ns 20.000006
+Ns 70.000006
 Ka 1.000000 1.000000 1.000000
 Ks 0.000000 0.000000 0.000000
 Ke 0.000000 0.000000 0.000000
 Ni 1.500000
 illum 1
+d 1.0
 map_Kd textures/texture_sea.jpeg
 map_d textures/texture_sea_opacity.jpeg
 
 newmtl Sky
-Ns 20.000006
+Ns 70.000006
 Ka 1.000000 1.000000 1.000000
 Ks 0.000000 0.000000 0.000000
 Ke 0.000000 0.000000 0.000000

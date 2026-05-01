@@ -9,8 +9,10 @@ class Material {
 public:
     std::shared_ptr<Texture> diffuse;
     std::shared_ptr<Texture> specular;
-    std::shared_ptr<Texture> opacity;
+    std::shared_ptr<Texture> opacityMap;
     bool hasOpacityMap = false;
+    bool hasCutoutMap = false;
+    bool isTransparent = false;
     
     std::shared_ptr<Texture> normal;
     bool hasNormalMap = false;

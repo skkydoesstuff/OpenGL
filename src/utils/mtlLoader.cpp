@@ -55,10 +55,9 @@ MTLLoader::load(const std::string& path) {
         else if (type == "map_d") {
             std::string tex;
             iss >> tex;
-
             std::string fullPath = assetDir + tex;
-
-            materials[current]->opacity = std::make_shared<Texture>(fullPath);
+            materials[current]->opacityMap = std::make_shared<Texture>(fullPath);
+            // don't set hasCutoutMap here, decide later
             materials[current]->hasOpacityMap = true;
         }
 
@@ -86,6 +85,7 @@ MTLLoader::load(const std::string& path) {
             float d;
             iss >> d;
             materials[current]->opacityValue = d;
+            materials[current]->isTransparent = true;
         }
 
         else if (type == "Tr") {

@@ -15,6 +15,7 @@
 #include "core/renderer/renderContext.hpp"
 
 #include <iostream>
+#include <algorithm>
 
 Renderer::~Renderer() {
     delete this->fullscreenQuadMesh;
@@ -112,24 +113,24 @@ void Renderer::endScene() {
     glBindFramebuffer(GL_READ_FRAMEBUFFER, msaa.fbo);
     glBindFramebuffer(GL_DRAW_FRAMEBUFFER, scene.fbo);
 
-    // resolve ALL color attachments at once
-    glBlitFramebuffer(
-        0, 0, width, height,
-        0, 0, width, height,
-        GL_COLOR_BUFFER_BIT,
-        GL_NEAREST
-    );
+    // Resolve attachment 0 (color)
+    glReadBuffer(GL_COLOR_ATTACHMENT0);
+    glDrawBuffer(GL_COLOR_ATTACHMENT0);
+    glBlitFramebuffer(0, 0, width, height, 0, 0, width, height, GL_COLOR_BUFFER_BIT, GL_NEAREST);
 
-    // resolve depth
-    glBlitFramebuffer(
-        0, 0, width, height,
-        0, 0, width, height,
-        GL_DEPTH_BUFFER_BIT,
-        GL_NEAREST
-    );
+    // Resolve attachment 1 (normals)
+    glReadBuffer(GL_COLOR_ATTACHMENT1);
+    glDrawBuffer(GL_COLOR_ATTACHMENT1);
+    glBlitFramebuffer(0, 0, width, height, 0, 0, width, height, GL_COLOR_BUFFER_BIT, GL_NEAREST);
+
+    // Restore draw buffers
+    GLenum drawBufs[] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1 };
+    glDrawBuffers(2, drawBufs);
+
+    // Resolve depth
+    glBlitFramebuffer(0, 0, width, height, 0, 0, width, height, GL_DEPTH_BUFFER_BIT, GL_NEAREST);
 
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
-
     glDisable(GL_DEPTH_TEST);
     glDepthMask(GL_FALSE);
 
@@ -203,6 +204,8 @@ void Renderer::setDimensions(int width, int height) {
 void Renderer::renderScene(const FrameSnapshot& frameSnapshot) {
     beginScene();
 
+    glBindTextureUnit(2, 0);
+
     auto& ctx = frameSnapshot.ctx;
     auto& cmdList = frameSnapshot.frame.commands;
 
@@ -235,6 +238,7 @@ void Renderer::renderScene(const FrameSnapshot& frameSnapshot) {
     // -------------------------
     // TRANSPARENT PASS
     // -------------------------
+
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     glDepthMask(GL_FALSE);

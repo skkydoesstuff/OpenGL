@@ -6,23 +6,24 @@
 #include "core/renderer/shader.hpp"
 
 void Material::bind(const Shader& shader) const {
-    // Diffuse (required)
     if (diffuse) {
         diffuse->bind(0);
         shader.setUniformInt("uDiffuseMap", 0);
     }
-
-    // Specular (optional)
     if (specular) {
         specular->bind(1);
         shader.setUniformInt("uSpecularMap", 1);
-        shader.setUniformBool("uHasSpecularMap", true);
+        shader.setUniformFloat("uHasSpecularMap", 1.0f);
     } else {
-        shader.setUniformBool("uHasSpecularMap", false);
+        shader.setUniformFloat("uHasSpecularMap", 0.0f);
     }
-
-    // 
-
+    if (opacityMap) {
+        opacityMap->bind(2);
+        shader.setUniformInt("uOpacityMap", 2);
+        shader.setUniformBool("uHasCutout", hasCutoutMap);
+    } else {
+        shader.setUniformBool("uHasCutout", false);
+    }
     if (normal) {
         normal->bind(3);
         shader.setUniformInt("uNormalMap", 3);
@@ -30,7 +31,6 @@ void Material::bind(const Shader& shader) const {
     } else {
         shader.setUniformBool("uHasNormalMap", false);
     }
-
     shader.setUniformFloat("uShininess", shininess);
     shader.setUniformFloat("uOpacity", opacityValue);
 }

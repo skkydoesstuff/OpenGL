@@ -50,7 +50,7 @@ void Scene::createMesh(const std::string& tag,
         }
 
         for (auto& [key, mat] : meshStructure.materials) {
-            this->createMaterial(key, mat->shininess, mat->diffuse, mat->specular, mat->opacity, mat->normal);
+            this->createMaterial(key, mat->shininess, mat->diffuse, mat->specular, mat->opacityMap, mat->normal);
         }
     }
 }
@@ -69,7 +69,7 @@ void Scene::createMaterial(const std::string& tag,
     mat->diffuse = tex;
     mat->specular = spec;
     mat->shininess = shininess;
-    mat->opacity = opacity;
+    mat->opacityMap = opacity;
     mat->normal = normal;
 }
 
