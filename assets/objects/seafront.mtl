@@ -39,7 +39,7 @@ Ks 0.000000 0.000000 0.000000
 Ke 0.000000 0.000000 0.000000
 Ni 1.500000
 illum 1
-d 1.0
+d 0.6
 map_Kd textures/texture_sea.jpeg
 map_d textures/texture_sea_opacity.jpeg
 

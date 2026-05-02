@@ -77,7 +77,7 @@ void main() {
     float alpha = uOpacity;
     if (uHasCutout) {
         alpha *= texture(uOpacityMap, vTexCoord).r;
-        if (alpha < 0.4)
+        if (alpha < 0.1)
             discard;
     }
 

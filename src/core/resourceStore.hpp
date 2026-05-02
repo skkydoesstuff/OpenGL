@@ -40,11 +40,11 @@ public:
         return out;
     }
 
-    std::vector<std::pair<std::string, T*>> items() {
-        std::vector<std::pair<std::string, T*>> out;
+    std::vector<std::pair<std::string, std::shared_ptr<T>>> items() {
+        std::vector<std::pair<std::string, std::shared_ptr<T>>> out;
         out.reserve(insertionOrder.size());
         for (const auto& k : insertionOrder)
-            out.emplace_back(k, resources[k].get());
+            out.emplace_back(k, resources[k]);
         return out;
     }
 

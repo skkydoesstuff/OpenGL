@@ -3,8 +3,74 @@
 #include "utils/mtlLoader.hpp"
 #include "utils/tiny_obj_loader.h"
 #include "core/renderer/mesh.hpp"
+
 #include <glm/glm.hpp>
+
 #include <iostream>
+#include <sstream>
+#include <fstream>
+#include <filesystem>
+
+void saveOBJ(const std::string& OBJOutFilePath, const std::string& MTLOutFilePath, std::shared_ptr<Mesh> mesh) {
+    // save mtl file
+    std::unordered_map<std::string, Material*> mats;
+    for (auto& sm : mesh->submeshes)
+        mats[sm.materialName] = sm.material;
+    saveMTL(MTLOutFilePath, mats);
+
+    std::ostringstream obj;
+
+    // mtllib should just be the filename, not the full path
+    obj << "mtllib " << std::filesystem::path(MTLOutFilePath).filename().string() << "\n";
+    obj << "o " << std::filesystem::path(OBJOutFilePath).stem().string() << "\n\n";
+
+    const auto& vs = mesh->getVertices();
+    const auto& is = mesh->getIndices();
+    const uint32_t stride = mesh->getStride();
+
+    // write geometry
+    size_t vertCount = vs.size() / stride;
+    for (size_t i = 0; i < vertCount; i++) {
+        size_t b = i * stride;
+        obj << "v "  << vs[b+0] << " " << vs[b+1] << " " << vs[b+2] << "\n";
+    }
+    obj << "\n";
+    for (size_t i = 0; i < vertCount; i++) {
+        size_t b = i * stride;
+        obj << "vt " << vs[b+6] << " " << (1.0f - vs[b+7]) << "\n"; // flip Y back
+    }
+    obj << "\n";
+    for (size_t i = 0; i < vertCount; i++) {
+        size_t b = i * stride;
+        obj << "vn " << vs[b+3] << " " << vs[b+4] << " " << vs[b+5] << "\n";
+    }
+    obj << "\n";
+
+    // write faces per submesh
+    for (const auto& sm : mesh->submeshes) {
+        obj << "g " << sm.materialName << "\n";
+        obj << "usemtl " << sm.materialName << "\n";
+        for (uint32_t i = 0; i < sm.indexCount; i += 3) {
+            uint32_t a = is[sm.indexOffset + i + 0] + 1;
+            uint32_t b = is[sm.indexOffset + i + 1] + 1;
+            uint32_t c = is[sm.indexOffset + i + 2] + 1;
+            obj << "f "
+                << a << "/" << a << "/" << a << " "
+                << b << "/" << b << "/" << b << " "
+                << c << "/" << c << "/" << c << "\n";
+        }
+        obj << "\n";
+    }
+
+    std::filesystem::create_directories(std::filesystem::path(OBJOutFilePath).parent_path());
+    std::ofstream out(OBJOutFilePath);
+    if (!out.is_open()) {
+        std::cerr << "Failed to write OBJ: " << OBJOutFilePath << "\n";
+        return;
+    }
+    out << obj.str();
+    std::cout << "Saved OBJ: " << OBJOutFilePath << "\n";
+}
 
 MeshStructure loadOBJ(const std::string& name) {
     static std::string exeDir = getExecutableDirectory();
@@ -29,8 +95,18 @@ MeshStructure loadOBJ(const std::string& name) {
             finalMaterials[m.name] = it->second;
     }
 
-    if (!err.empty()) std::cout << err << std::endl;
-    if (!ret) std::cout << "failed to load obj" << std::endl;
+    if (!err.empty()) std::cerr << "[OBJ] " << name << ": " << err << "\n";
+    if (!ret) {
+        std::cerr << "[OBJ] Failed to load: " << inputfile << "\n";
+        std::cerr << "[OBJ] File exists: " << (std::filesystem::exists(inputfile) ? "yes" : "no") << "\n";
+        return {};
+    }
+    if (shapes.empty())
+        std::cerr << "[OBJ] Warning: " << name << " loaded but has no shapes\n";
+    if (attrib.vertices.empty())
+        std::cerr << "[OBJ] Warning: " << name << " loaded but has no vertices\n";
+    if (materials.empty())
+        std::cerr << "[OBJ] Warning: " << name << " loaded but has no materials — check mtlDir: " << mtlDir << "\n";
 
     std::vector<glm::vec3> positions;
     std::vector<glm::vec3> normals;
@@ -145,7 +221,6 @@ MeshStructure loadOBJ(const std::string& name) {
             sm.renderType = RenderType::Opaque;
 
             if (sm.material->hasOpacityMap && !sm.material->isTransparent) {
-                // black/white cutout — opaque pass with discard
                 sm.material->hasCutoutMap = true;
                 sm.renderType = RenderType::Opaque;
             } else if (sm.material->isTransparent || sm.material->opacityValue < 1.0f) {
@@ -177,6 +252,17 @@ MeshStructure loadOBJ(const std::string& name) {
         out_vertices.push_back(tangents[i].x);
         out_vertices.push_back(tangents[i].y);
         out_vertices.push_back(tangents[i].z);
+    }
+
+    for (auto& [id, sm] : materialToSubmesh) {
+        std::cerr << "submesh matID=" << id 
+                << " name=" << sm.materialName
+                << " offset=" << sm.indexOffset 
+                << " count=" << sm.indexCount
+                << " material=" << (sm.material ? "set" : "null")
+                << " hasOpacityMap=" << (sm.material ? sm.material->hasOpacityMap : false)
+                << " renderType=" << (int)sm.renderType
+                << " hasCutoutMap=" << sm.material->hasCutoutMap << "\n";
     }
 
     MeshStructure meshStructure = { out_vertices, out_indices, submeshes, finalMaterials };

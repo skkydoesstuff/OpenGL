@@ -6,6 +6,7 @@
 
 #include "utils/objLoader.hpp"
 #include "utils/jsonHelpers.hpp"
+#include "utils/fileUtils.hpp"
 
 #include <algorithm>
 #include <iostream>
@@ -159,9 +160,16 @@ void Scene::loadSceneFromJSON(const std::string& jsonPath) {
 void Scene::saveSceneToJSON(const std::string& jsonPath) {
     json sceneObjects;
 
+    std::string exeDir = getExecutableDirectory();
+    std::string assetDir = exeDir + "\\assets\\";
+
     for (const auto& [k, v] : this->rm->meshes.items()) {
         json mesh;
         mesh["name"] = k;
+        if (v->sourceFile.empty()) {
+            saveOBJ(assetDir + k + ".obj", assetDir + k + ".mtl", v);
+        }
+
         mesh["source"] = v->sourceFile;
 
         sceneObjects["meshes"].push_back(mesh);
@@ -304,7 +312,7 @@ void Scene::createMesh(const std::string& tag,
 }
 
 void Scene::createTexture(const std::string& tag, const std::string& path) {
-    this->rm->textures.create(tag, path);
+    std::shared_ptr<Texture> t =this->rm->textures.create(tag, path);
 }
 
 void Scene::createMaterial(const std::string& tag,

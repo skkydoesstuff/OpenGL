@@ -5,6 +5,8 @@
 #include "core/renderer/texture.hpp"
 #include "core/renderer/shader.hpp"
 
+#include <iostream>
+
 void Material::bind(const Shader& shader) const {
     if (diffuse) {
         diffuse->bind(0);

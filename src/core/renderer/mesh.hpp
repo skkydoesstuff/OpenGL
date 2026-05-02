@@ -37,6 +37,10 @@ public:
     void draw() const;
     void drawSubMesh(const SubMesh& sm) const;
 
+    std::vector<float> getVertices() { return this->vs; }
+    std::vector<unsigned int> getIndices() { return this->is; }
+    uint32_t getStride() { return this->stride; }
+
     std::vector<SubMesh> submeshes; // <-- add this
     std::string sourceFile;
 

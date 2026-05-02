@@ -94,6 +94,10 @@ LIBS := -Lexternal/glfw/lib -lglfw3 -lopengl32 -lgdi32 -lshlwapi
 # -------------------------
 $(shell if not exist "$(subst /,\,$(APP_OBJ_DIR))" mkdir "$(subst /,\,$(APP_OBJ_DIR))")
 $(shell if not exist "$(subst /,\,$(VENDOR_OBJ_DIR))" mkdir "$(subst /,\,$(VENDOR_OBJ_DIR))")
+$(shell if not exist "$(subst /,\,$(APP_OBJ_DIR))\utils" mkdir "$(subst /,\,$(APP_OBJ_DIR))\utils")
+$(shell if not exist "$(subst /,\,$(APP_OBJ_DIR))\core\scene" mkdir "$(subst /,\,$(APP_OBJ_DIR))\core\scene")
+$(shell if not exist "$(subst /,\,$(APP_OBJ_DIR))\core\renderer" mkdir "$(subst /,\,$(APP_OBJ_DIR))\core\renderer")
+$(shell if not exist "$(subst /,\,$(APP_OBJ_DIR))\app" mkdir "$(subst /,\,$(APP_OBJ_DIR))\app")
 
 define make-dir
 if not exist "$(subst /,\,$(dir $@))" mkdir "$(subst /,\,$(dir $@))"

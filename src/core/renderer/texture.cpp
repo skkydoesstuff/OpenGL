@@ -7,8 +7,9 @@
 
 #include <stdexcept> 
 #include <iostream> 
+#include <filesystem>
 
-Texture::Texture(const std::string& path) {
+Texture::Texture(const std::string& path): texSource(path) {
     glGenTextures(1, &this->id);
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, this->id);
@@ -16,7 +17,7 @@ Texture::Texture(const std::string& path) {
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-
+    
     int width, height, nrChannels;
     unsigned char* data = stbi_load(path.c_str(), &width, &height, &nrChannels, 0);
     if (data) {
@@ -24,10 +25,8 @@ Texture::Texture(const std::string& path) {
         glTexImage2D(GL_TEXTURE_2D, 0, format, width, height, 0, format, GL_UNSIGNED_BYTE, data);
         glGenerateMipmap(GL_TEXTURE_2D);
         stbi_image_free(data);
-        loaded = true;
     } else {
         std::cerr << "Failed to load texture: " << path << "\n";
-        loaded = false;  // add `bool loaded = false;` to Texture.hpp
     }
 }
 

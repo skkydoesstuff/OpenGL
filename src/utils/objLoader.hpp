@@ -12,4 +12,6 @@ struct MeshStructure {
     std::unordered_map<std::string, Material*> materials;
 };
 
+void saveOBJ(const std::string& OBJOutFilePath, const std::string& MTLOutFilePath, std::shared_ptr<Mesh> mesh);
+
 MeshStructure loadOBJ(const std::string& name);

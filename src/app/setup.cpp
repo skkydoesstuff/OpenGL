@@ -2,12 +2,13 @@
 
 #include "utils/fileUtils.hpp"
 #include "utils/jsonHelpers.hpp"
+#include "utils/objLoader.hpp"
 
 void App::setup() {
     std::string exeDir = getExecutableDirectory();
     std::string assetDir = exeDir + "\\assets\\";
     
-    scene->loadSceneFromJSON(assetDir + "scenes\\" + "test.json");
+    scene->loadSceneFromJSON(assetDir + "scenes\\" + "scene.json");
 
     auto cam = scene->createCamera(45.0f, (float)this->width/(float)this->height, 0.1f, 100.0f);
     cam->position = {0.0f, 0.0f, 1.0f};
@@ -26,6 +27,8 @@ void App::setup() {
 
         .pixelSize = 4.0f
     };
+
+    //saveOBJ(assetDir + "objects\\" + "testssss.obj", assetDir + "objects\\" + "testssss.mtl", scene->getMesh("seafront"));
 
     //scene->saveSceneToJSON(assetDir + "scenes\\" + "test.json");
 }

@@ -8,7 +8,6 @@
     "shaders": [
         { "name": "base", "vert": "base.vert", "frag": "base.frag" },
         { "name": "scanline", "vert": "blit.vert", "frag": "scanline.frag" },
-        { "name": "outline", "vert": "blit.vert", "frag": "outline.frag" },
         { "name": "pixelated", "vert": "blit.vert", "frag": "pixelated.frag" }
     ],
     "models": [

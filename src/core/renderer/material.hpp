@@ -20,5 +20,7 @@ public:
     float shininess = 32.0f;
     float opacityValue = 1.0f;
 
+    std::string diffuseSrc, specularSrc, opacitySrc, normalSrc;
+
     void bind(const Shader& shader) const;
 }; 
