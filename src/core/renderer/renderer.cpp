@@ -17,10 +17,7 @@
 #include <iostream>
 #include <algorithm>
 
-Renderer::~Renderer() {
-    delete this->fullscreenQuadMesh;
-    delete this->blitShader;
-}
+Renderer::~Renderer() {}
 
 void Renderer::initFullscreenQuad() {
     std::vector<float> quadVertices = {
@@ -34,7 +31,7 @@ void Renderer::initFullscreenQuad() {
          1.0f,  1.0f,  1.0f, 1.0f
     };
 
-    this->fullscreenQuadMesh = new Mesh(quadVertices, 4);
+    this->fullscreenQuadMesh = std::make_unique<Mesh>(quadVertices, 4);
     this->fullscreenQuadMesh->addVertexAttribute(0, 2, GL_FLOAT, 4 * sizeof(float), (void*)0);
     this->fullscreenQuadMesh->addVertexAttribute(1, 2, GL_FLOAT, 4 * sizeof(float), (void*)(2 * sizeof(float)));
 }
@@ -57,11 +54,6 @@ void Renderer::registerRT(const std::string& name, RTDesc desc) {
 
 RenderTarget& Renderer::getRT(const std::string& name) {
     return rts.at(name);
-}
-
-void Renderer::bindTex(int slot, GLuint tex) {
-    glActiveTexture(GL_TEXTURE0 + slot);
-    glBindTexture(GL_TEXTURE_2D, tex);
 }
 
 void Renderer::init(int width, int height) {
@@ -89,27 +81,13 @@ void Renderer::init(int width, int height) {
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
     initFullscreenQuad();
-    blitShader = new Shader("blit.vert", "blit.frag");
+    blitShader = std::make_unique<Shader>("blit.vert", "blit.frag");
 }
 
-void Renderer::beginScene() {
-    auto& msaa = rts.at("msaa");
-    msaa.bindForDraw();
-    glViewport(0, 0, width, height);
-    glEnable(GL_DEPTH_TEST);
-    glDepthMask(GL_TRUE);
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-}
-
-void Renderer::endScene() {
+void Renderer::resolveMSAA() {
     auto& msaa  = rts.at("msaa");
     auto& scene = rts.at("scene");
-    auto& ping  = rts.at("ping");
-    ///auto& pong  = rts.at("pong");
 
-    // -----------------------------
-    // Resolve MSAA -> scene
-    // -----------------------------
     glBindFramebuffer(GL_READ_FRAMEBUFFER, msaa.fbo);
     glBindFramebuffer(GL_DRAW_FRAMEBUFFER, scene.fbo);
 
@@ -133,10 +111,17 @@ void Renderer::endScene() {
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
     glDisable(GL_DEPTH_TEST);
     glDepthMask(GL_FALSE);
+}
 
-    // -----------------------------
-    // 2. Post-process chain
-    // -----------------------------
+// extra textures start after these reserved slots
+constexpr unsigned int kSlotColor = 0;
+constexpr unsigned int kSlotDepth = 1;
+constexpr unsigned int kSlotNormal = 2;
+
+void Renderer::postProcessChain() {
+    auto& scene = rts.at("scene");
+    auto& ping  = rts.at("ping");
+
     std::unordered_map<std::string, GLuint> snapshots;
     snapshots["scene"] = scene.getColor(0);
 
@@ -149,20 +134,20 @@ void Renderer::endScene() {
         glClear(GL_COLOR_BUFFER_BIT);
 
         pass->shader->bind();
-        bindTex(0, input->getColor(0));
-        pass->shader->setUniformInt("uTexture", 0);
-        bindTex(1, scene.getDepth());
-        pass->shader->setUniformInt("uDepth", 1);
-        bindTex(2, scene.getColor(1));
-        pass->shader->setUniformInt("uNormal", 2);
+        glBindTextureUnit(kSlotColor, input->getColor(0));
+        pass->shader->setUniformInt("uTexture", kSlotColor);
+        glBindTextureUnit(kSlotDepth, scene.getDepth());
+        pass->shader->setUniformInt("uDepth", kSlotDepth);
+        glBindTextureUnit(kSlotNormal, scene.getColor(1));
+        pass->shader->setUniformInt("uNormal", kSlotNormal);
         pass->shader->setUniformVec2("uOutputSize", glm::vec2(width, height));
         pass->applyUniforms();
 
-        int slot = 3;
+        unsigned int slot = 3;
         for (auto& [uniformName, snapshotName] : pass->extraTextures) {
             auto it = snapshots.find(snapshotName);
             if (it != snapshots.end()) {
-                bindTex(slot, it->second);
+                glBindTextureUnit(slot, it->second);
                 pass->shader->setUniformInt(uniformName, slot);
                 slot++;
             } else {
@@ -177,18 +162,34 @@ void Renderer::endScene() {
 
         std::swap(input, output);
     }
+}
 
-    // -----------------------------
-    // 3. Final blit to screen
-    // -----------------------------
+void Renderer::finalBlit() {
+    auto& scene = rts.at("scene");
+
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
     glViewport(0, 0, width, height);
     glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT);
     blitShader->bind();
-    bindTex(0, input->getColor(0));
+    glBindTextureUnit(0, scene.getColor(0));
     blitShader->setUniformInt("uTexture", 0);
     renderFullscreenQuad();
+}
+
+void Renderer::beginScene() {
+    auto& msaa = rts.at("msaa");
+    msaa.bindForDraw();
+    glViewport(0, 0, width, height);
+    glEnable(GL_DEPTH_TEST);
+    glDepthMask(GL_TRUE);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+}
+
+void Renderer::endScene() {
+    this->resolveMSAA();
+    this->postProcessChain();
+    this->finalBlit();
 
     glEnable(GL_DEPTH_TEST);
 }
@@ -198,7 +199,7 @@ void Renderer::setDimensions(int width, int height) {
     this->height = height;
     for (auto& [name, rt] : rts)
         rt.resize(width, height);
-    glBindTexture(GL_TEXTURE_2D, 0);
+    glBindTextureUnit(GL_TEXTURE_2D, 0);
 }
 
 void Renderer::renderScene(const FrameSnapshot& frameSnapshot) {
@@ -222,39 +223,27 @@ void Renderer::renderScene(const FrameSnapshot& frameSnapshot) {
     }
     ctx.shader->setUniformInt("uNumLights", frameSnapshot.frame.lights.size());
 
-    // -------------------------
-    // OPAQUE FIRST (no blending)
-    // -------------------------
+    bool blending = false;
+
     for (auto& cmd : cmdList) {
-        if (cmd.flags & DrawFlags::Transparent)
-            continue;
+        bool isTransparent = cmd.flags & DrawFlags::Transparent;
+
+        if (isTransparent && !blending) {
+            glEnable(GL_BLEND);
+            glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+            glDepthMask(GL_FALSE);
+            blending = true;
+        }
 
         ctx.shader->setUniformMat4("model", cmd.model);
-
         cmd.material->bind(*ctx.shader);
         cmd.mesh->drawSubMesh(*cmd.submesh);
     }
 
-    // -------------------------
-    // TRANSPARENT PASS
-    // -------------------------
-
-    glEnable(GL_BLEND);
-    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-    glDepthMask(GL_FALSE);
-
-    for (auto& cmd : cmdList) {
-        if (!(cmd.flags & DrawFlags::Transparent))
-            continue;
-
-        ctx.shader->setUniformMat4("model", cmd.model);
-
-        cmd.material->bind(*ctx.shader);
-        cmd.mesh->drawSubMesh(*cmd.submesh);
+    if (blending) {
+        glDepthMask(GL_TRUE);
+        glDisable(GL_BLEND);
     }
-
-    glDepthMask(GL_TRUE);
-    glDisable(GL_BLEND);
 
     endScene();
 }

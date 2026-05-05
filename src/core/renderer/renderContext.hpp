@@ -1,7 +1,7 @@
 #pragma once
 
 #include "core/renderer/shader.hpp"
-#include "core/scene/camera.hpp"
+#include "core/scene/objects/camera.hpp"
 
 #include <memory>
 

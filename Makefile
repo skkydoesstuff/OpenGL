@@ -5,8 +5,8 @@ TARGET   := build\app.exe
 CXXFLAGS := -O0 -g -Wall -Wextra -std=c++20
 CFLAGS   := -O0 -g
 
-CXXFLAGS_RELEASE := -O2 -DNDEBUG -Wall -Wextra -std=c++20
-CFLAGS_RELEASE   := -O2 -DNDEBUG
+CXXFLAGS_RELEASE := -O3 -DNDEBUG -Wall -Wextra -std=c++20
+CFLAGS_RELEASE   := -O3 -DNDEBUG
 
 BUILD_DIR := build
 OBJ_DIR := $(BUILD_DIR)/obj
@@ -24,9 +24,23 @@ SHELL := cmd.exe
 APP_SOURCES := \
     src/main.cpp \
     src/core/scene/scene.cpp \
-    src/core/scene/light.cpp \
-    src/core/scene/model.cpp \
-    src/core/scene/camera.cpp \
+    src/core/scene/objects/light.cpp \
+    src/core/scene/objects/model.cpp \
+    src/core/scene/objects/camera.cpp \
+    src/core/scene/loaders/loadShaders.cpp \
+    src/core/scene/loaders/loadMaterials.cpp \
+    src/core/scene/loaders/loadTextures.cpp \
+    src/core/scene/loaders/loadMeshes.cpp \
+    src/core/scene/loaders/loadModels.cpp \
+    src/core/scene/loaders/loadLights.cpp \
+    src/core/scene/loaders/loadPasses.cpp \
+    src/core/scene/savers/saveShaders.cpp \
+    src/core/scene/savers/saveMaterials.cpp \
+    src/core/scene/savers/saveTextures.cpp \
+    src/core/scene/savers/saveMeshes.cpp \
+    src/core/scene/savers/saveModels.cpp \
+    src/core/scene/savers/saveLights.cpp \
+    src/core/scene/savers/savePasses.cpp \
     src/core/renderer/mesh.cpp \
     src/core/renderer/renderer.cpp \
     src/core/renderer/renderTarget.cpp \

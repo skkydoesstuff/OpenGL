@@ -2,7 +2,7 @@
 
 #include "core/renderer/mesh.hpp"
 #include "core/resourceManager.hpp"
-#include "core/scene/model.hpp"
+#include "core/scene/objects/model.hpp"
 
 #include "utils/objLoader.hpp"
 #include "utils/jsonHelpers.hpp"
@@ -18,295 +18,37 @@ Scene::Scene(uint32_t width, uint32_t height) {
 }
 
 void Scene::loadSceneFromJSON(const std::string& jsonPath) {
-    json sceneObjs = parseJson(jsonPath);
+    json j = parseJson(jsonPath);
 
-    auto toVec3 = [](const json& a) {
-        return glm::vec3(a[0], a[1], a[2]);
-    };
-
-    for (const auto& shader : sceneObjs["shaders"]) {
-        std::string name = shader.value("name", "");
-        std::string vert = shader.value("vert", "");
-        std::string frag = shader.value("frag", "");
-
-        this->createShader(name, vert, frag);
-    }
-
-    for (const auto& texture : sceneObjs["textures"]) {
-        std::string name = texture.value("name", "");
-        std::string source = texture.value("source", "");
-
-        this->createTexture(name, source);
-    }
-
-    for (const auto& material: sceneObjs["materials"]) {
-        std::string name = material.value("name", "");
-        float shininess = material.value("shininess", 32.0f);
-        std::string diffuse = material.value("diffuse", "");
-        std::string specular = material.value("specular", "");
-        std::string opacity = material.value("opacity", "");
-        std::string normal = material.value("normal", "");
-
-        std::shared_ptr<Material> mat = this->rm->materials.create(name);
-        mat->shininess = shininess;
-
-        std::shared_ptr<Texture> diff = this->rm->textures.get(diffuse);
-        mat->diffuse = diff;
-
-        if (!specular.empty()) {
-            std::shared_ptr<Texture> spec = this->rm->textures.get(specular);
-            mat->specular = spec;
-        }
-
-        if (!opacity.empty()) {
-            std::shared_ptr<Texture> opac = this->rm->textures.get(opacity);
-            mat->opacityMap = opac;
-        }
-
-        if (!normal.empty()) {
-            std::shared_ptr<Texture> norm = this->rm->textures.get(normal);
-            mat->normal = norm;
-        }
-    }
-
-    for (const auto& mesh : sceneObjs["meshes"]) {
-        std::string name = mesh.value("name", "");
-        std::string source = mesh.value("source", "");
-        std::string material = mesh.value("base_material", "");
-
-        
-        std::shared_ptr<Mesh> m = this->createMesh(name, {}, {}, source);
-        if (!material.empty()) {
-            m->setMaterial(this->getMaterial(material));
-        }
-    }
-
-    for (const auto& model : sceneObjs["models"]) {
-        std::string name = model.value("name", "");
-        std::string mesh = model.value("mesh", "");
-
-        Model* m = this->createModel(name, mesh);
-
-        auto& transform = model["transform"];
-
-        m->transform.position = toVec3(transform["position"]);
-
-        m->transform.rotation = toVec3(transform["rotation"]);
-
-        m->transform.scale = toVec3(transform["scale"]);
-    }
-
-    for (const auto& light : sceneObjs["lights"]) {
-        std::string name = light.value("name", "");
-
-        Light* l = this->createLight(name);
-
-        auto& position = light["position"];
-        auto& ambient = light["ambient"];
-        auto& diffuse = light["diffuse"];
-        auto& specular = light["specular"];
-        auto& constant = light["constant"];
-        auto& linear = light["linear"];
-        auto& quadratic = light["quadratic"];
-
-        l->position = toVec3(position);
-        l->ambient = toVec3(ambient);
-        l->diffuse = toVec3(diffuse);
-        l->specular = toVec3(specular);
-
-        l->constant = constant;
-        l->linear = linear;
-        l->quadratic = quadratic;
-    }
-
-    for (const auto& pass : sceneObjs["passes"]) {
-        std::string name   = pass.value("name", "");
-        std::string shader = pass.value("shader", "");
-
-        std::unordered_map<std::string, UniformValue> uniforms;
-        std::unordered_map<std::string, std::string> textures;
-
-        // ---- uniforms ----
-        const auto& u = pass["uniforms"];
-
-        for (auto it = u.begin(); it != u.end(); ++it) {
-            const auto& key = it.key();
-            const auto& val = it.value();
-
-            if (val.is_number_float()) {
-                uniforms[key] = val.get<float>();
-            }
-            else if (val.is_number_integer()) {
-                uniforms[key] = val.get<int>();
-            }
-            else if (val.is_array() && val.size() == 2) {
-                uniforms[key] = glm::vec2(val[0], val[1]);
-            }
-            else if (val.is_array() && val.size() == 3) {
-                uniforms[key] = glm::vec3(val[0], val[1], val[2]);
-            }
-            else if (val.is_array() && val.size() == 4) {
-                uniforms[key] = glm::vec4(val[0], val[1], val[2], val[3]);
-            }
-            else if (val.is_array() && val.size() == 16) {
-                glm::mat4 m(1.0f);
-                for (int i = 0; i < 16; i++)
-                    m[i / 4][i % 4] = val[i];
-                uniforms[key] = m;
-            }
-        }
-
-        // ---- textures ----
-        if (pass.contains("textures")) {
-            const auto& t = pass["textures"];
-
-            for (auto it = t.begin(); it != t.end(); ++it) {
-                textures[it.key()] = it.value().get<std::string>();
-            }
-        }
-
-        this->createPass(name, shader, uniforms, textures, "");
-    }
+    this->loadShaders   (j);
+    this->loadMaterials (j);
+    this->loadTextures  (j);
+    this->loadMeshes    (j);
+    this->loadModels    (j);
+    this->loadLights    (j);
+    this->loadPasses    (j);
 }
 
 void Scene::saveSceneToJSON(const std::string& jsonPath) {
-    json sceneObjects;
+    json j;
 
     std::string exeDir = getExecutableDirectory();
     std::string assetDir = exeDir + "\\assets\\";
 
-    for (const auto& [k, v] : this->rm->shaders.items()) {
-        json shader;
-        shader["name"] = k;
-        shader["vert"] = v->vertName;
-        shader["frag"] = v->fragName;
-
-        sceneObjects["shaders"].push_back(shader);
-    }
-
-    for (const auto& [k, v] : this->rm->textures.items()) {
-        json texture;
-        texture["name"] = k;
-        texture["source"] = v->texSource;
-
-        sceneObjects["textures"].push_back(texture);
-    }
-
-    for (const auto& [k, v] : this->rm->materials.items()) {
-        json material;
-
-        material["name"] = k;
-        material["shininess"] = std::to_string(v->shininess);
-
-        if (v->diffuse)
-            material["diffuse"] = v->diffuse->name;
-        if (v->specular)
-            material["specular"] = v->specular->name;
-        if (v->opacityMap)
-            material["opacity"] = v->opacityMap->name;
-        if (v->normal)
-            material["normal"] = v->normal->name;
-
-        sceneObjects["materials"].push_back(material);
-    }
-
-    for (const auto& [k, v] : this->rm->meshes.items()) {
-        json mesh;
-        mesh["name"] = k;
-        if (v->sourceFile.empty()) {
-            std::string objPath = assetDir + k + ".obj";
-            std::string mtlPath = assetDir + k + ".mtl";
-
-            saveOBJ(objPath, mtlPath, v);
-            v->sourceFile = objPath;
-        }
-
-        mesh["source"] = v->sourceFile;
-
-        sceneObjects["meshes"].push_back(mesh);
-    }
-
-    for (const auto& [k, v] : this->rm->models.items()) {
-        json model;
-
-        model["name"] = k;
-        model["mesh"] = v->meshSourceName;
-
-        json transform;
-
-        transform["position"] = {
-            v->transform.position.x,
-            v->transform.position.y,
-            v->transform.position.z
-        };
-
-        transform["rotation"] = {
-            v->transform.rotation.x,
-            v->transform.rotation.y,
-            v->transform.rotation.z
-        };
-
-        transform["scale"] = {
-            v->transform.scale.x,
-            v->transform.scale.y,
-            v->transform.scale.z
-        };
-
-        model["transform"] = transform;
-
-        sceneObjects["models"].push_back(model);
-    }
-
-    for (auto& [k, v] : this->rm->lights.items()) {
-        json light;
-
-        light["name"] = k;
-
-        light["position"] = {v->position.x, v->position.y, v->position.z};
-        light["ambient"] = {v->ambient.x, v->ambient.y, v->ambient.z};
-        light["diffuse"] = {v->diffuse.x, v->diffuse.y, v->diffuse.z};
-        light["specular"] = {v->specular.x, v->specular.y, v->specular.z};
-
-        light["constant"] = v->constant;
-        light["linear"] = v->linear;
-        light["quadratic"] = v->quadratic;
-
-        sceneObjects["lights"].push_back(light);
-    }
-
-    for (const auto& [k, v] : this->rm->passes.items()) {
-        json pass;
-        pass["name"] = k;
-        pass["shader"] = v->shaderName;
-
-        json uniforms;
-        for (const auto& [key, val] : v->uniforms) {
-            std::visit([&](auto&& v) {
-                using T = std::decay_t<decltype(v)>;
-                if constexpr (std::is_same_v<T, int>)            uniforms[key] = v;
-                else if constexpr (std::is_same_v<T, float>)     uniforms[key] = v;
-                else if constexpr (std::is_same_v<T, glm::vec2>) uniforms[key] = { v.x, v.y };
-                else if constexpr (std::is_same_v<T, glm::vec3>) uniforms[key] = { v.x, v.y, v.z };
-                else if constexpr (std::is_same_v<T, glm::vec4>) uniforms[key] = { v.x, v.y, v.z, v.w };
-                else if constexpr (std::is_same_v<T, glm::mat4>) {
-                    json mat = json::array();
-                    for (int i = 0; i < 4; i++)
-                        for (int j = 0; j < 4; j++)
-                            mat.push_back(v[i][j]);
-                    uniforms[key] = mat;
-                }
-            }, val);
-        }
-        pass["uniforms"] = uniforms;
-        sceneObjects["passes"].push_back(pass);
-    }
+    this->saveShaders   (j);
+    this->saveMaterials (j);
+    this->saveTextures  (j);
+    this->saveMeshes    (j);
+    this->saveModels    (j);
+    this->saveLights    (j);
+    this->savePasses    (j);
 
     std::ofstream out(jsonPath);
     if (!out.is_open()) {
         std::cerr << "Failed to open: " << jsonPath << "\n";
         return;
     }
-    out << sceneObjects.dump(4);
+    out << j.dump(4);
 }
 
 void Scene::createShader(const std::string& tag,
@@ -499,6 +241,16 @@ FrameData Scene::buildFrame() {
 
     for (Light* l : rm->lights.values())
         frame.lights.push_back(l);
+
+    std::sort(frame.commands.begin(), frame.commands.end(),
+    [](const DrawCommand& a, const DrawCommand& b) {
+        if (a.flags != b.flags)
+            return a.flags < b.flags; // Opaque before Transparent
+        if (a.flags & Transparent)
+            return a.depth > b.depth; // Transparent: far to near
+        return false;
+    });
+
 
     return frame;
 }

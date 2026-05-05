@@ -16,6 +16,8 @@
       "frag": "pixelated.frag"
     }
   ],
+  "materials": [],
+  "textures": [],
   "meshes": [
     {
       "name": "seafront",

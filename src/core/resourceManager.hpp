@@ -7,9 +7,9 @@
 #include "core/renderer/material.hpp"
 #include "core/renderer/renderer.hpp"
 #include "core/renderer/postprocess_pass.hpp"
-#include "core/scene/model.hpp"
-#include "core/scene/camera.hpp"
-#include "core/scene/light.hpp"
+#include "core/scene/objects/model.hpp"
+#include "core/scene/objects/camera.hpp"
+#include "core/scene/objects/light.hpp"
 
 class ResourceManager {
 public:

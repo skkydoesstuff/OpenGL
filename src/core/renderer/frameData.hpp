@@ -3,8 +3,7 @@
 #include "core/renderer/mesh.hpp"
 #include "core/renderer/material.hpp"
 #include "core/renderer/renderContext.hpp"
-#include "core/scene/model.hpp"
-#include "core/scene/light.hpp"
+#include "core/scene/objects/light.hpp"
 
 struct DrawCommand {
     Mesh* mesh;
@@ -12,7 +11,7 @@ struct DrawCommand {
     std::shared_ptr<Material> material;
     glm::mat4 model;
 
-    float depth;        // only meaningful for transparent
+    float depth = 0.0f;        // only meaningful for transparent
     uint8_t flags = 0;      // opaque/transparent/etc
 };
 

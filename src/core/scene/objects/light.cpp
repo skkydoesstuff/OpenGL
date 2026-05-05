@@ -1,4 +1,4 @@
-#include "core/scene/light.hpp"
+#include "core/scene/objects/light.hpp"
 
 #include "core/renderer/shader.hpp"
 

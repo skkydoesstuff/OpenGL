@@ -4,7 +4,6 @@
 #include "core/renderer/postprocess_pass.hpp"
 #include "core/renderer/renderTarget.hpp"
 #include "core/renderer/frameData.hpp"
-#include "core/renderer/renderContext.hpp"
 
 class Renderer {
 public:
@@ -35,11 +34,15 @@ public:
 private:
     static constexpr int msaaSamples = 4; // 2, 4, or 8
 
+    void resolveMSAA();
+    void postProcessChain();
+    void finalBlit();
+
     void bindTex(int slot, GLuint tex);
     void beginScene();
     void endScene();
 
-    Shader* blitShader;
+    std::unique_ptr<Shader> blitShader;
 
     std::unordered_map<std::string, RTDesc>        rtDescs;
     std::unordered_map<std::string, RenderTarget>  rts;
@@ -48,7 +51,7 @@ private:
 
     int width, height;
 
-    Mesh* fullscreenQuadMesh;
+    std::unique_ptr<Mesh> fullscreenQuadMesh;
     void initFullscreenQuad();
     void renderFullscreenQuad();
 };

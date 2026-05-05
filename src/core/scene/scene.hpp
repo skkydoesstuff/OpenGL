@@ -6,13 +6,15 @@
 #include <unordered_map>
 
 #include "core/resourceManager.hpp"
-#include "core/scene/model.hpp"
-#include "core/scene/light.hpp"
-#include "core/scene/camera.hpp"
+#include "core/scene/objects/model.hpp"
+#include "core/scene/objects/light.hpp"
+#include "core/scene/objects/camera.hpp"
 #include "core/renderer/renderer.hpp"
 #include "core/renderer/postprocess_pass.hpp"
 #include "core/renderer/material.hpp"
 #include "core/renderer/frameData.hpp"
+
+#include "utils/jsonHelpers.hpp"
 
 class Scene {
 public:
@@ -76,6 +78,22 @@ private:
 
     std::unique_ptr<Renderer> renderer;
     std::unique_ptr<Camera> cam;
+
+    void loadShaders    (const json& j);
+    void loadTextures   (const json& j);
+    void loadMaterials  (const json& j);
+    void loadMeshes     (const json& j);
+    void loadModels     (const json& j);
+    void loadLights     (const json& j);
+    void loadPasses     (const json& j);
+
+    void saveShaders    (json& j);
+    void saveTextures   (json& j);
+    void saveMaterials  (json& j);
+    void saveMeshes     (json& j);
+    void saveModels     (json& j);
+    void saveLights     (json& j);
+    void savePasses     (json& j);
 
     FrameData buildFrame();
     RenderContext buildContext(std::shared_ptr<Shader> shader);
