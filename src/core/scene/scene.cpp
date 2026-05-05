@@ -8,7 +8,6 @@
 #include "utils/jsonHelpers.hpp"
 #include "utils/fileUtils.hpp"
 
-#include <algorithm>
 #include <iostream>
 #include <fstream>
 
@@ -21,13 +20,9 @@ Scene::Scene(uint32_t width, uint32_t height) {
 void Scene::loadSceneFromJSON(const std::string& jsonPath) {
     json sceneObjs = parseJson(jsonPath);
 
-    for (const auto& mesh : sceneObjs["meshes"]) {
-        std::string name = mesh.value("name", "");
-        std::string source = mesh.value("source", "");
-
-        this->createMesh(name, {}, {}, source);
-        
-    }
+    auto toVec3 = [](const json& a) {
+        return glm::vec3(a[0], a[1], a[2]);
+    };
 
     for (const auto& shader : sceneObjs["shaders"]) {
         std::string name = shader.value("name", "");
@@ -35,6 +30,55 @@ void Scene::loadSceneFromJSON(const std::string& jsonPath) {
         std::string frag = shader.value("frag", "");
 
         this->createShader(name, vert, frag);
+    }
+
+    for (const auto& texture : sceneObjs["textures"]) {
+        std::string name = texture.value("name", "");
+        std::string source = texture.value("source", "");
+
+        this->createTexture(name, source);
+    }
+
+    for (const auto& material: sceneObjs["materials"]) {
+        std::string name = material.value("name", "");
+        float shininess = material.value("shininess", 32.0f);
+        std::string diffuse = material.value("diffuse", "");
+        std::string specular = material.value("specular", "");
+        std::string opacity = material.value("opacity", "");
+        std::string normal = material.value("normal", "");
+
+        std::shared_ptr<Material> mat = this->rm->materials.create(name);
+        mat->shininess = shininess;
+
+        std::shared_ptr<Texture> diff = this->rm->textures.get(diffuse);
+        mat->diffuse = diff;
+
+        if (!specular.empty()) {
+            std::shared_ptr<Texture> spec = this->rm->textures.get(specular);
+            mat->specular = spec;
+        }
+
+        if (!opacity.empty()) {
+            std::shared_ptr<Texture> opac = this->rm->textures.get(opacity);
+            mat->opacityMap = opac;
+        }
+
+        if (!normal.empty()) {
+            std::shared_ptr<Texture> norm = this->rm->textures.get(normal);
+            mat->normal = norm;
+        }
+    }
+
+    for (const auto& mesh : sceneObjs["meshes"]) {
+        std::string name = mesh.value("name", "");
+        std::string source = mesh.value("source", "");
+        std::string material = mesh.value("base_material", "");
+
+        
+        std::shared_ptr<Mesh> m = this->createMesh(name, {}, {}, source);
+        if (!material.empty()) {
+            m->setMaterial(this->getMaterial(material));
+        }
     }
 
     for (const auto& model : sceneObjs["models"]) {
@@ -45,23 +89,11 @@ void Scene::loadSceneFromJSON(const std::string& jsonPath) {
 
         auto& transform = model["transform"];
 
-        m->transform.position = glm::vec3(
-            transform["position"][0],
-            transform["position"][1],
-            transform["position"][2]
-        );
+        m->transform.position = toVec3(transform["position"]);
 
-        m->transform.rotation = glm::vec3(
-            transform["rotation"][0],
-            transform["rotation"][1],
-            transform["rotation"][2]
-        );
+        m->transform.rotation = toVec3(transform["rotation"]);
 
-        m->transform.scale = glm::vec3(
-            transform["scale"][0],
-            transform["scale"][1],
-            transform["scale"][2]
-        );
+        m->transform.scale = toVec3(transform["scale"]);
     }
 
     for (const auto& light : sceneObjs["lights"]) {
@@ -77,30 +109,11 @@ void Scene::loadSceneFromJSON(const std::string& jsonPath) {
         auto& linear = light["linear"];
         auto& quadratic = light["quadratic"];
 
-        l->position = glm::vec3(
-            position[0],
-            position[1],
-            position[2]
-        );
+        l->position = toVec3(position);
+        l->ambient = toVec3(ambient);
+        l->diffuse = toVec3(diffuse);
+        l->specular = toVec3(specular);
 
-        l->ambient = glm::vec3(
-            ambient[0],
-            ambient[1],
-            ambient[2]
-        );
-        
-        l->diffuse = glm::vec3(
-            diffuse[0],
-            diffuse[1],
-            diffuse[2]
-        );
-
-        l->specular = glm::vec3(
-            specular[0],
-            specular[1],
-            specular[2]
-        );
-    
         l->constant = constant;
         l->linear = linear;
         l->quadratic = quadratic;
@@ -154,7 +167,6 @@ void Scene::loadSceneFromJSON(const std::string& jsonPath) {
 
         this->createPass(name, shader, uniforms, textures, "");
     }
-    //printJson(sceneObjs);
 }
 
 void Scene::saveSceneToJSON(const std::string& jsonPath) {
@@ -163,18 +175,6 @@ void Scene::saveSceneToJSON(const std::string& jsonPath) {
     std::string exeDir = getExecutableDirectory();
     std::string assetDir = exeDir + "\\assets\\";
 
-    for (const auto& [k, v] : this->rm->meshes.items()) {
-        json mesh;
-        mesh["name"] = k;
-        if (v->sourceFile.empty()) {
-            saveOBJ(assetDir + k + ".obj", assetDir + k + ".mtl", v);
-        }
-
-        mesh["source"] = v->sourceFile;
-
-        sceneObjects["meshes"].push_back(mesh);
-    }
-
     for (const auto& [k, v] : this->rm->shaders.items()) {
         json shader;
         shader["name"] = k;
@@ -182,6 +182,48 @@ void Scene::saveSceneToJSON(const std::string& jsonPath) {
         shader["frag"] = v->fragName;
 
         sceneObjects["shaders"].push_back(shader);
+    }
+
+    for (const auto& [k, v] : this->rm->textures.items()) {
+        json texture;
+        texture["name"] = k;
+        texture["source"] = v->texSource;
+
+        sceneObjects["textures"].push_back(texture);
+    }
+
+    for (const auto& [k, v] : this->rm->materials.items()) {
+        json material;
+
+        material["name"] = k;
+        material["shininess"] = std::to_string(v->shininess);
+
+        if (v->diffuse)
+            material["diffuse"] = v->diffuse->name;
+        if (v->specular)
+            material["specular"] = v->specular->name;
+        if (v->opacityMap)
+            material["opacity"] = v->opacityMap->name;
+        if (v->normal)
+            material["normal"] = v->normal->name;
+
+        sceneObjects["materials"].push_back(material);
+    }
+
+    for (const auto& [k, v] : this->rm->meshes.items()) {
+        json mesh;
+        mesh["name"] = k;
+        if (v->sourceFile.empty()) {
+            std::string objPath = assetDir + k + ".obj";
+            std::string mtlPath = assetDir + k + ".mtl";
+
+            saveOBJ(objPath, mtlPath, v);
+            v->sourceFile = objPath;
+        }
+
+        mesh["source"] = v->sourceFile;
+
+        sceneObjects["meshes"].push_back(mesh);
     }
 
     for (const auto& [k, v] : this->rm->models.items()) {
@@ -219,7 +261,7 @@ void Scene::saveSceneToJSON(const std::string& jsonPath) {
         json light;
 
         light["name"] = k;
-        
+
         light["position"] = {v->position.x, v->position.y, v->position.z};
         light["ambient"] = {v->ambient.x, v->ambient.y, v->ambient.z};
         light["diffuse"] = {v->diffuse.x, v->diffuse.y, v->diffuse.z};
@@ -276,43 +318,10 @@ void Scene::createShader(const std::string& tag,
     s->fragName = frag;
 }
 
-/**
-* @param objFileName Leave vertices and indices blank if you are using this
-*/
-void Scene::createMesh(const std::string& tag,
-                      const std::vector<float>& vertices,
-                      const std::vector<unsigned int> indices,
-                      const std::string& objFileName) {
-
-    if (vertices.empty() != true) {
-        std::shared_ptr<Mesh> m = this->rm->meshes.create(tag, vertices, 11, indices);
-        m->addVertexAttribute(0, 3, GL_FLOAT, 11 * sizeof(float), (const void*)0);
-        m->addVertexAttribute(1, 3, GL_FLOAT, 11 * sizeof(float), (const void*)(sizeof(float) * 3));
-        m->addVertexAttribute(2, 2, GL_FLOAT, 11 * sizeof(float), (const void*)(sizeof(float) * 6));
-        m->addVertexAttribute(3, 3, GL_FLOAT, 11 * sizeof(float), (const void*)(sizeof(float) * 8));
-    } else if (objFileName.empty() != true) {
-        MeshStructure meshStructure = loadOBJ(objFileName);
-        std::shared_ptr<Mesh> m = this->rm->meshes.create(tag, meshStructure.vertices, 11, meshStructure.indices);
-        m->sourceFile = objFileName;
-        m->addVertexAttribute(0, 3, GL_FLOAT, 11 * sizeof(float), (const void*)0);
-        m->addVertexAttribute(1, 3, GL_FLOAT, 11 * sizeof(float), (const void*)(sizeof(float) * 3));
-        m->addVertexAttribute(2, 2, GL_FLOAT, 11 * sizeof(float), (const void*)(sizeof(float) * 6));
-        m->addVertexAttribute(3, 3, GL_FLOAT, 11 * sizeof(float), (const void*)(sizeof(float) * 8));
-
-        m->submeshes = meshStructure.submeshes;
-
-        for (auto& sm : m->submeshes) {
-            m->computeBounds(sm);
-        }
-
-        for (auto& [key, mat] : meshStructure.materials) {
-            this->createMaterial(key, mat->shininess, mat->diffuse, mat->specular, mat->opacityMap, mat->normal);
-        }
-    }
-}
-
 void Scene::createTexture(const std::string& tag, const std::string& path) {
     std::shared_ptr<Texture> t =this->rm->textures.create(tag, path);
+    t->texSource = path;
+    t->name = tag;
 }
 
 void Scene::createMaterial(const std::string& tag,
@@ -334,22 +343,64 @@ void Scene::createPass(const std::string& tag,
                        std::unordered_map<std::string, UniformValue> uniforms,
                        std::unordered_map<std::string, std::string> extraTextures,
                        const std::string& output) {
-    
+
     PostProcessPass* pass = this->rm->passes.create(tag);
     pass->shaderName = shaderTag;
     pass->shader = this->rm->shaders.get(shaderTag);
-    pass->uniforms = std::move(uniforms);
-    pass->extraTextures = std::move(extraTextures);
-    pass->saveOutputAs = std::move(output);
+    pass->uniforms = uniforms;
+    pass->extraTextures = extraTextures;
+    pass->saveOutputAs = output;
+}
+
+/**
+* @param objFileName Leave vertices and indices blank if you are using this
+*/
+std::shared_ptr<Mesh> Scene::createMesh(const std::string& tag,
+                                        const std::vector<float>& vertices,
+                                        const std::vector<unsigned int> indices,
+                                        const std::string& objFileName) {
+
+    if (vertices.empty() != true) {
+        std::shared_ptr<Mesh> m = this->rm->meshes.create(tag, vertices, 11, indices);
+        m->addVertexAttribute(0, 3, GL_FLOAT, 11 * sizeof(float), (const void*)0);
+        m->addVertexAttribute(1, 3, GL_FLOAT, 11 * sizeof(float), (const void*)(sizeof(float) * 3));
+        m->addVertexAttribute(2, 2, GL_FLOAT, 11 * sizeof(float), (const void*)(sizeof(float) * 6));
+        m->addVertexAttribute(3, 3, GL_FLOAT, 11 * sizeof(float), (const void*)(sizeof(float) * 8));
+
+        return m;
+    } else if (objFileName.empty() != true) {
+        MeshStructure meshStructure = loadOBJ(objFileName);
+        std::shared_ptr<Mesh> m = this->rm->meshes.create(tag, meshStructure.vertices, 11, meshStructure.indices);
+        m->sourceFile = objFileName;
+        m->addVertexAttribute(0, 3, GL_FLOAT, 11 * sizeof(float), (const void*)0);
+        m->addVertexAttribute(1, 3, GL_FLOAT, 11 * sizeof(float), (const void*)(sizeof(float) * 3));
+        m->addVertexAttribute(2, 2, GL_FLOAT, 11 * sizeof(float), (const void*)(sizeof(float) * 6));
+        m->addVertexAttribute(3, 3, GL_FLOAT, 11 * sizeof(float), (const void*)(sizeof(float) * 8));
+
+        m->submeshes = meshStructure.submeshes;
+
+        for (auto& sm : m->submeshes) {
+            m->computeBounds(sm);
+        }
+
+        for (auto& [key, mat] : meshStructure.materials) {
+            this->createMaterial(key, mat->shininess, mat->diffuse, mat->specular, mat->opacityMap, mat->normal);
+        }
+
+        return m;
+    } else {
+        std::cerr << "Attempted to create a mesh with no vertex data or OBJ file provided for: " << tag << std::endl;
+        return nullptr;
+    }
 }
 
 Model* Scene::createModel(const std::string& tag,
-                          const std::string& meshTag) 
+                          const std::string& meshTag)
 {
     std::shared_ptr<Mesh> m = this->rm->meshes.get(meshTag);
 
     Model* model = this->rm->models.create(tag, m);
-    
+
     model->meshSourceName = m->sourceFile;
 
     return model;
@@ -420,12 +471,13 @@ FrameData Scene::buildFrame() {
     const glm::mat4 view = getCamera()->getView();
 
     for (Model* m : rm->models.values()) {
+        if (!m) continue;
         m->updateModelMatrix();
 
         glm::mat4 model = m->getModelMatrix();
 
         for (SubMesh& sm : m->mesh->submeshes) {
-            Material* mat = sm.material;
+            std::shared_ptr<Material> mat = sm.material;
             if (!mat) continue;
 
             DrawCommand cmd;

@@ -13,7 +13,7 @@
 
 void saveOBJ(const std::string& OBJOutFilePath, const std::string& MTLOutFilePath, std::shared_ptr<Mesh> mesh) {
     // save mtl file
-    std::unordered_map<std::string, Material*> mats;
+    std::unordered_map<std::string, std::shared_ptr<Material>> mats;
     for (auto& sm : mesh->submeshes)
         mats[sm.materialName] = sm.material;
     saveMTL(MTLOutFilePath, mats);
@@ -88,7 +88,7 @@ MeshStructure loadOBJ(const std::string& name) {
     auto mtlPath = assetDir + "objects\\" + name + ".mtl";
     auto loadedMaterials = MTLLoader::load(mtlPath);
 
-    std::unordered_map<std::string, Material*> finalMaterials;
+    std::unordered_map<std::string, std::shared_ptr<Material>> finalMaterials;
     for (auto& m : materials) {
         auto it = loadedMaterials.find(m.name);
         if (it != loadedMaterials.end())
@@ -137,7 +137,7 @@ MeshStructure loadOBJ(const std::string& name) {
 
             // Gather the 3 vertices of the triangle first so we can compute the tangent
             struct FaceVert { glm::vec3 pos; glm::vec3 normal; glm::vec2 uv; };
-            std::array<FaceVert, 3> faceVerts;
+            FaceVert faceVerts[3];
 
             for (int v = 0; v < fv; v++) {
                 tinyobj::index_t idx = shape.mesh.indices[index_offset + v];
@@ -252,17 +252,6 @@ MeshStructure loadOBJ(const std::string& name) {
         out_vertices.push_back(tangents[i].x);
         out_vertices.push_back(tangents[i].y);
         out_vertices.push_back(tangents[i].z);
-    }
-
-    for (auto& [id, sm] : materialToSubmesh) {
-        std::cerr << "submesh matID=" << id 
-                << " name=" << sm.materialName
-                << " offset=" << sm.indexOffset 
-                << " count=" << sm.indexCount
-                << " material=" << (sm.material ? "set" : "null")
-                << " hasOpacityMap=" << (sm.material ? sm.material->hasOpacityMap : false)
-                << " renderType=" << (int)sm.renderType
-                << " hasCutoutMap=" << sm.material->hasCutoutMap << "\n";
     }
 
     MeshStructure meshStructure = { out_vertices, out_indices, submeshes, finalMaterials };

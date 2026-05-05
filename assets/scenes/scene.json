@@ -1,57 +1,98 @@
 {
-    "meshes": [
-        {
-            "name": "seafront",
-            "source": "seafront"
-        }
-    ],
-    "shaders": [
-        { "name": "base", "vert": "base.vert", "frag": "base.frag" },
-        { "name": "scanline", "vert": "blit.vert", "frag": "scanline.frag" },
-        { "name": "pixelated", "vert": "blit.vert", "frag": "pixelated.frag" }
-    ],
-    "models": [
-        {
-            "name": "seafront",
-            "mesh": "seafront",
-            "transform": {
-                "position": [0.0, 0.0, 0.0],
-                "rotation": [0.0, 0.0, 0.0],
-                "scale": [0.50, 0.50, 0.50]
-            }
-        }
-    ],
-    "lights": [
-        {
-            "name": "light",
-            "position": [1.7, 2.3, -2.9],
-            "ambient":  [5.0, 5.0, 5.0],
-            "diffuse":  [10.0, 10.0, 10.0],
-            "specular": [0.5, 0.5, 0.5],
-            "constant":  1.0,
-            "linear":    1.0,
-            "quadratic": 1.2
-        }
-    ],
-    "passes": [
-        {
-            "name": "pixelated",
-            "shader": "pixelated",
-            "uniforms": {
-                "uPixelSize": 4.0
-            }
-        },
-        {
-            "name": "scanline",
-            "shader": "scanline",
-            "uniforms": {
-                "uScanlineThickness": 2.0,
-                "uScanlineDarkness": 0.6,
-                "uPhosphorStrength": 1.5,
-                "uGlowStrength": 0.3,
-                "uVignetteStrength": 0.35,
-                "uBrightBoost": 1.15
-            }
-        }
-    ]
+  "shaders": [
+    {
+      "name": "base",
+      "vert": "base.vert",
+      "frag": "base.frag"
+    },
+    {
+      "name": "scanline",
+      "vert": "blit.vert",
+      "frag": "scanline.frag"
+    },
+    {
+      "name": "pixelated",
+      "vert": "blit.vert",
+      "frag": "pixelated.frag"
+    }
+  ],
+  "meshes": [
+    {
+      "name": "seafront",
+      "source": "seafront",
+      "base_material": ""
+    }
+  ],
+  "models": [
+    {
+      "name": "seafront",
+      "mesh": "seafront",
+      "transform": {
+        "position": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          0.5,
+          0.5,
+          0.5
+        ]
+      }
+    }
+  ],
+  "lights": [
+    {
+      "name": "light",
+      "position": [
+        1.7,
+        2.3,
+        -2.9
+      ],
+      "ambient": [
+        5.0,
+        5.0,
+        5.0
+      ],
+      "diffuse": [
+        10.0,
+        10.0,
+        10.0
+      ],
+      "specular": [
+        0.5,
+        0.5,
+        0.5
+      ],
+      "constant": 1.0,
+      "linear": 1.0,
+      "quadratic": 1.2
+    }
+  ],
+  "passes": [
+    {
+      "name": "pixelated",
+      "shader": "pixelated",
+      "uniforms": {
+        "uPixelSize": 4.0
+      }
+    },
+    {
+      "name": "scanline",
+      "shader": "scanline",
+      "uniforms": {
+        "uScanlineThickness": 2.0,
+        "uScanlineDarkness": 0.6,
+        "uPhosphorStrength": 1.5,
+        "uGlowStrength": 0.3,
+        "uVignetteStrength": 0.35,
+        "uBrightBoost": 1.15
+      }
+    }
+  ]
 }

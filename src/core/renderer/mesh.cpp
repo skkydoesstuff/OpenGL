@@ -1,7 +1,11 @@
 #include "mesh.hpp"
 
 #include <glad/glad.h>
+
+#include "utils/debugUtils.hpp"
+
 #include <vector>
+#include <iostream>
 
 Mesh::Mesh(std::vector<float> vertices, uint32_t stride, std::vector<unsigned int> indices): vs(vertices), is(indices), stride(stride) {
     glGenVertexArrays(1, &this->VAO);
@@ -10,7 +14,7 @@ Mesh::Mesh(std::vector<float> vertices, uint32_t stride, std::vector<unsigned in
     glGenBuffers(1, &this->VBO);
     glBindBuffer(GL_ARRAY_BUFFER, this->VBO);
     glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(float), vertices.data(), GL_STATIC_DRAW);
-    
+
     if (indices.size() > 0) {
         glGenBuffers(1, &this->EBO);
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, this->EBO);
@@ -24,10 +28,6 @@ Mesh::~Mesh() {
     glDeleteBuffers(1, &EBO);
     glDeleteBuffers(1, &VBO);
     glDeleteVertexArrays(1, &VAO);
-
-    for (auto sm : this->submeshes) {
-        delete sm.material;
-    }
 }
 
 void Mesh::computeBounds(SubMesh& sm) {
@@ -80,6 +80,33 @@ void Mesh::drawSubMesh(const SubMesh& sm) const {
         GL_UNSIGNED_INT,
         (void*)(sm.indexOffset * sizeof(unsigned int))
     );
+}
+
+void Mesh::setMaterial(std::shared_ptr<Material> mat, const std::string& name) {
+    if (this->submeshes.empty()) {
+        SubMesh sm;
+
+        sm.indexOffset = 0;
+
+        if (!this->is.empty()) {
+            sm.indexCount = this->is.size();
+        } else {
+            sm.indexCount = this->vs.size() / this->stride;
+        }
+
+        sm.material = mat;
+        sm.materialName = name;
+        sm.renderType = mat && mat->isTransparent
+            ? RenderType::Transparent
+            : RenderType::Opaque;
+
+        computeBounds(sm);
+
+        this->submeshes.push_back(sm);
+    } else {
+        // If submeshes already exist, apply to all (or decide your policy)
+        DEBUG_PRINT(std::cout << "attempted to set material for a mesh that has submeshes!" << std::endl);
+    }
 }
 
 void Mesh::bindVAO() const { glBindVertexArray(this->VAO); }

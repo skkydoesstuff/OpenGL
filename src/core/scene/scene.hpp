@@ -25,11 +25,6 @@ public:
                       const std::string& vert,
                       const std::string& frag);
 
-    void createMesh(const std::string& tag,
-                    const std::vector<float>& vertices = {},
-                    const std::vector<unsigned int> indices = {},
-                    const std::string& objFileName = "");
-
     void createTexture(const std::string& tag, const std::string& path);
 
     void createMaterial(const std::string& tag,
@@ -44,7 +39,12 @@ public:
                     std::unordered_map<std::string, UniformValue> uniforms = {},
                     std::unordered_map<std::string, std::string> extraTextures = {},
                     const std::string& output = "");
-        
+    
+    std::shared_ptr<Mesh> createMesh(const std::string& tag,
+                          const std::vector<float>& vertices = {},
+                          const std::vector<unsigned int> indices = {},
+                          const std::string& objFileName = "");
+
     Model* createModel(const std::string& tag,
                        const std::string& meshTag);
 

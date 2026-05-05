@@ -15,7 +15,7 @@ enum class RenderType {
 struct SubMesh {
     uint32_t indexOffset = 0;
     uint32_t indexCount = 0;
-    Material* material = nullptr;
+    std::shared_ptr<Material> material = nullptr;
     std::string materialName = "";
 
     glm::vec3 boundsMin;
@@ -29,13 +29,15 @@ class Mesh {
 public:
     Mesh(std::vector<float> vertices, uint32_t stride, std::vector<unsigned int> indices = {});
     ~Mesh();
-    
+
     void computeBounds(SubMesh& sm);
 
     void addVertexAttribute(uint32_t index, uint32_t attribSize, unsigned int attribType, GLsizei stride, const void* offset);
 
     void draw() const;
     void drawSubMesh(const SubMesh& sm) const;
+
+    void setMaterial(std::shared_ptr<Material> mat, const std::string& name = "default");
 
     std::vector<float> getVertices() { return this->vs; }
     std::vector<unsigned int> getIndices() { return this->is; }

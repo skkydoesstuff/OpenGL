@@ -7,7 +7,7 @@
 #include <filesystem>
 #include <algorithm>
 
-void saveMTL(const std::string& path, std::unordered_map<std::string, Material*> materials) {
+void saveMTL(const std::string& path, std::unordered_map<std::string, std::shared_ptr<Material>> materials) {
     std::ostringstream mtl;
     std::filesystem::path mtlDir = std::filesystem::path(path).parent_path();
 
@@ -43,7 +43,7 @@ void saveMTL(const std::string& path, std::unordered_map<std::string, Material*>
     std::cout << "Saved MTL: " << path << "\n";
 }
 
-std::unordered_map<std::string, Material*>
+std::unordered_map<std::string, std::shared_ptr<Material>>
 MTLLoader::load(const std::string& path) {
     std::filesystem::path mtlDir = std::filesystem::path(path).parent_path();
 
@@ -51,7 +51,7 @@ MTLLoader::load(const std::string& path) {
         return std::filesystem::weakly_canonical(mtlDir / tex).string();
     };
 
-    std::unordered_map<std::string, Material*> materials;
+    std::unordered_map<std::string, std::shared_ptr<Material>> materials;
     std::ifstream file(path);
     if (!file.is_open()) {
         std::cerr << "Failed to open MTL: " << path << "\n";
@@ -67,7 +67,7 @@ MTLLoader::load(const std::string& path) {
 
         if (type == "newmtl") {
             iss >> current;
-            materials[current] = new Material();
+            materials[current] = std::make_shared<Material>();
         }
         else if (type == "map_Kd") {
             std::string tex; iss >> tex;

@@ -26,7 +26,7 @@ App::App() {
     glfwWindowHint(GLFW_MAXIMIZED, GLFW_TRUE);
     glfwWindowHint(GLFW_CURSOR_DISABLED, GLFW_TRUE);
     glfwWindowHint(GLFW_SAMPLES, 4); // 4x MSAA
-    
+
     // create window
     float main_scale = ImGui_ImplGlfw_GetContentScaleForMonitor(glfwGetPrimaryMonitor());
     this->window = glfwCreateWindow((int)(width * main_scale), (int)(height * main_scale), "OpenGL + ImGui", nullptr, nullptr);
@@ -34,7 +34,7 @@ App::App() {
         exit(1);
     glfwMakeContextCurrent(this->window);
     glfwSwapInterval(1);
-    
+
     glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
     mouseLocked = true;
     firstMouse = true;
@@ -44,7 +44,7 @@ App::App() {
         fprintf(stderr, "Failed to initialize GLAD\n");
         exit(1);
     }
-    
+
     // set basic gl settings
     glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
     glEnable(GL_DEPTH_TEST);
@@ -64,5 +64,5 @@ App::App() {
     ImGui_ImplGlfw_InitForOpenGL(window, true);
     ImGui_ImplOpenGL3_Init(glsl_version);
 
-    this->scene = new Scene(this->width, this->height);
+    this->scene = std::make_unique<Scene>(this->width, this->height);
 }

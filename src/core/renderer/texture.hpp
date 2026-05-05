@@ -8,8 +8,8 @@ public:
     ~Texture();
 
     void bind(unsigned int slot = 0) const;
-    std::string texSource;
+    std::string texSource, name;
 
-    unsigned int id;
 private:
+    unsigned int id;
 };

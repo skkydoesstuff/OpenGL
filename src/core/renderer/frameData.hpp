@@ -9,7 +9,7 @@
 struct DrawCommand {
     Mesh* mesh;
     const SubMesh* submesh;
-    Material* material;
+    std::shared_ptr<Material> material;
     glm::mat4 model;
 
     float depth;        // only meaningful for transparent
