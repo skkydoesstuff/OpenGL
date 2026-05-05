@@ -35,10 +35,9 @@ private:
     static constexpr int msaaSamples = 4; // 2, 4, or 8
 
     void resolveMSAA();
-    void postProcessChain();
-    void finalBlit();
+    unsigned int postProcessChain();
+    void finalBlit(unsigned int finalTexture);
 
-    void bindTex(int slot, GLuint tex);
     void beginScene();
     void endScene();
 

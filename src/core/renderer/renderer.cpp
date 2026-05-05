@@ -118,7 +118,7 @@ constexpr unsigned int kSlotColor = 0;
 constexpr unsigned int kSlotDepth = 1;
 constexpr unsigned int kSlotNormal = 2;
 
-void Renderer::postProcessChain() {
+unsigned int Renderer::postProcessChain() {
     auto& scene = rts.at("scene");
     auto& ping  = rts.at("ping");
 
@@ -162,17 +162,17 @@ void Renderer::postProcessChain() {
 
         std::swap(input, output);
     }
+
+    return input->getColor(0);
 }
 
-void Renderer::finalBlit() {
-    auto& scene = rts.at("scene");
-
+void Renderer::finalBlit(unsigned int finalTexture) {
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
     glViewport(0, 0, width, height);
     glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT);
     blitShader->bind();
-    glBindTextureUnit(0, scene.getColor(0));
+    glBindTextureUnit(0, finalTexture);
     blitShader->setUniformInt("uTexture", 0);
     renderFullscreenQuad();
 }
@@ -188,8 +188,8 @@ void Renderer::beginScene() {
 
 void Renderer::endScene() {
     this->resolveMSAA();
-    this->postProcessChain();
-    this->finalBlit();
+    unsigned int final = this->postProcessChain();
+    this->finalBlit(final);
 
     glEnable(GL_DEPTH_TEST);
 }
